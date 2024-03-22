@@ -15,7 +15,7 @@ int main(int argc, char* argv[])
         "mainWindow",
         1280,
         720,
-        SDL_WINDOW_RESIZABLE
+        0//SDL_WINDOW_RESIZABLE
     );
     SDL_Renderer* mainRenderer = SDL_CreateRenderer(mainWindow, nullptr, SDL_RENDERER_PRESENTVSYNC | SDL_RENDERER_ACCELERATED);
 
@@ -35,24 +35,6 @@ int main(int argc, char* argv[])
     //This is our main rendering loop that gets called "every frame"
     while (!done)
     {
-        // Poll and handle messages (inputs, window resize, etc.)
-        SDL_Event event;
-        while (SDL_PollEvent(&event)) {
-            if (event.type == SDL_EVENT_QUIT) {
-                done = true;
-            } else if (imguiIO.WantCaptureMouse) {
-                //don't handle the this input to SDL/Renderer, so we do nothing
-            } else if (!mouseProcessingEvent && event.type == SDL_EVENT_MOUSE_BUTTON_DOWN && event.button.button == SDL_BUTTON_LEFT) {
-                mouseProcessingEvent = true;
-                EngineManager::AddToViewPort(mainRenderer, ImVec2(event.button.x, event.button.y), 50.0f, 50.0f);
-            } else if (mouseProcessingEvent && event.type == SDL_EVENT_MOUSE_BUTTON_UP && event.button.button == SDL_BUTTON_LEFT) {
-                mouseProcessingEvent = false;
-            }
-            ImGui_ImplSDL3_ProcessEvent(&event);
-        }
-        if (done) {
-            break;
-        }
 
         ImGui_ImplSDLRenderer3_NewFrame();
         ImGui_ImplSDL3_NewFrame();
@@ -69,6 +51,27 @@ int main(int argc, char* argv[])
         //Draw our gameObjects and ImGui Overlay from the renderstack
         EngineManager::DrawViewPort(mainRenderer);
         ImGui_ImplSDLRenderer3_RenderDrawData(ImGui::GetDrawData());
+
+        // Poll and handle messages (inputs, window resize, etc.)
+        SDL_Event event;
+        while (SDL_PollEvent(&event)) {
+            if (event.type == SDL_EVENT_QUIT) {
+                done = true;
+            } else if (imguiIO.WantCaptureMouse) {
+                //don't handle the this input to SDL/Renderer, so we do nothing
+            } else if (!mouseProcessingEvent && event.type == SDL_EVENT_MOUSE_BUTTON_DOWN && event.button.button == SDL_BUTTON_LEFT) {
+                mouseProcessingEvent = true;
+                EngineManager::AddToViewPort(mainRenderer, ImVec2(event.button.x, event.button.y), 50.0f, 50.0f);
+            } else if (mouseProcessingEvent && event.type == SDL_EVENT_MOUSE_BUTTON_UP && event.button.button == SDL_BUTTON_LEFT) {
+                mouseProcessingEvent = false;
+            } else if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN && event.button.button == SDL_BUTTON_RIGHT) {
+                EngineManager::SelectObject(EngineManager::FindSelectedObject(mainRenderer, ImVec2(event.button.x, event.button.y)));
+            }
+            ImGui_ImplSDL3_ProcessEvent(&event);
+        }
+        if (done) {
+            break;
+        }
 
         //update renderer with any new render calls since last "RenderPreset" call
         SDL_RenderPresent(mainRenderer);
