@@ -4,8 +4,8 @@
 
 
 # Configuration directories and files
-SourceDirectory: C:/Users/Might/OneDrive/Desktop/EngineCoding/Test1
-BuildDirectory: C:/Users/Might/OneDrive/Desktop/EngineCoding/Test1/build
+SourceDirectory: D:/GameEngineCoding
+BuildDirectory: D:/GameEngineCoding/build
 
 # Where to place the cost data store
 CostDataFile: 
@@ -27,7 +27,7 @@ SubmitInactivityTimeout:
 NightlyStartTime: 00:00:00 EDT
 
 # Commands for the build/test/submit cycle
-ConfigureCommand: "C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/bin/cmake.exe" "C:/Users/Might/OneDrive/Desktop/EngineCoding/Test1"
+ConfigureCommand: "C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/bin/cmake.exe" "D:/GameEngineCoding"
 MakeCommand: "C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" --build . --config "${CTEST_CONFIGURATION_TYPE}"
 DefaultCTestConfigurationType: Release
 
@@ -45,7 +45,7 @@ SVNOptions:
 SVNUpdateOptions: 
 
 # Git options
-GITCommand: 
+GITCommand: C:/Program Files/Git/cmd/git.exe
 GITInitSubmodules: 
 GITUpdateOptions: 
 GITUpdateCustom: 
@@ -58,9 +58,9 @@ P4UpdateOptions:
 P4UpdateCustom: 
 
 # Generic update command
-UpdateCommand: 
+UpdateCommand: C:/Program Files/Git/cmd/git.exe
 UpdateOptions: 
-UpdateType: 
+UpdateType: git
 
 # Compiler info
 Compiler: C:/Program Files/Microsoft Visual Studio/2022/Community/VC/Tools/MSVC/14.39.33519/bin/Hostx64/x86/cl.exe

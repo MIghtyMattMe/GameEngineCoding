@@ -22,7 +22,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{7FDAEDDE-1003-37DA-A657-7E2BDD95D850}</ProjectGuid>
+    <ProjectGuid>{8835C5BD-6756-3A7F-81EE-8CAF162BCAA7}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <WindowsTargetPlatformVersion>10.0.22621.0</WindowsTargetPlatformVersion>
     <Platform>win32</Platform>
@@ -121,7 +121,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <CustomBuild Include="C:\Users\Might\OneDrive\Desktop\EngineCoding\Test1\build\CMakeFiles\0746e137314d6a3223e1a43107742c02\RUN_TESTS_force.rule">
+    <CustomBuild Include="D:\GameEngineCoding\build\CMakeFiles\6412f5b905b333292979235c67271683\RUN_TESTS_force.rule">
       <BuildInParallel Condition="'$(Configuration)|$(Platform)'=='Debug|win32'">true</BuildInParallel>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|win32'"> </Message>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|win32'">setlocal
@@ -134,7 +134,7 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|win32'">%(AdditionalInputs)</AdditionalInputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|win32'">C:\Users\Might\OneDrive\Desktop\EngineCoding\Test1\build\CMakeFiles\RUN_TESTS_force</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|win32'">D:\GameEngineCoding\build\CMakeFiles\RUN_TESTS_force</Outputs>
       <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|win32'">false</LinkObjects>
       <VerifyInputsAndOutputsExist Condition="'$(Configuration)|$(Platform)'=='Debug|win32'">false</VerifyInputsAndOutputsExist>
       <BuildInParallel Condition="'$(Configuration)|$(Platform)'=='Release|win32'">true</BuildInParallel>
@@ -149,7 +149,7 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|win32'">%(AdditionalInputs)</AdditionalInputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|win32'">C:\Users\Might\OneDrive\Desktop\EngineCoding\Test1\build\CMakeFiles\RUN_TESTS_force</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|win32'">D:\GameEngineCoding\build\CMakeFiles\RUN_TESTS_force</Outputs>
       <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|win32'">false</LinkObjects>
       <VerifyInputsAndOutputsExist Condition="'$(Configuration)|$(Platform)'=='Release|win32'">false</VerifyInputsAndOutputsExist>
       <BuildInParallel Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|win32'">true</BuildInParallel>
@@ -164,7 +164,7 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|win32'">%(AdditionalInputs)</AdditionalInputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|win32'">C:\Users\Might\OneDrive\Desktop\EngineCoding\Test1\build\CMakeFiles\RUN_TESTS_force</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|win32'">D:\GameEngineCoding\build\CMakeFiles\RUN_TESTS_force</Outputs>
       <LinkObjects Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|win32'">false</LinkObjects>
       <VerifyInputsAndOutputsExist Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|win32'">false</VerifyInputsAndOutputsExist>
       <BuildInParallel Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|win32'">true</BuildInParallel>
@@ -179,14 +179,14 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|win32'">%(AdditionalInputs)</AdditionalInputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|win32'">C:\Users\Might\OneDrive\Desktop\EngineCoding\Test1\build\CMakeFiles\RUN_TESTS_force</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|win32'">D:\GameEngineCoding\build\CMakeFiles\RUN_TESTS_force</Outputs>
       <LinkObjects Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|win32'">false</LinkObjects>
       <VerifyInputsAndOutputsExist Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|win32'">false</VerifyInputsAndOutputsExist>
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="C:\Users\Might\OneDrive\Desktop\EngineCoding\Test1\build\ZERO_CHECK.vcxproj">
-      <Project>{3AE9355D-70AA-3C15-A4E8-9C4A8E73D2B4}</Project>
+    <ProjectReference Include="D:\GameEngineCoding\build\ZERO_CHECK.vcxproj">
+      <Project>{D2E62C7A-9E67-3A5A-A2B6-BE0CE70FD585}</Project>
       <Name>ZERO_CHECK</Name>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>

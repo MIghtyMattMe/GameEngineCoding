@@ -15,6 +15,8 @@ namespace EngineManager {
                 SetTextureFromeFile(renderer, textureFile);
             }
             ~GameObject() {
+                if (targetTexture != NULL) SDL_DestroyTexture(targetTexture);
+                targetTexture = NULL;
             }
             ImVec2 position;
             SDL_Color color;
@@ -27,11 +29,12 @@ namespace EngineManager {
     };
 
     void InitEngine();
+    void CloseEngine();
     void RenderEngine();
     void MakeTools();
-    void MakeViewPort();
+    void MakeInspector();
     void AddToViewPort(GameObject* gameObject);
     void AddToViewPort(SDL_Renderer* renderer, ImVec2 targetPos, float targetWidth, float targetHeight, std::string textureFile="");
-    //at some point switch to using Render_Geometry? (https://wiki.libsdl.org/SDL3/SDL_RenderGeometry)
+    //at some point switch to using Render_Geometry? (https://wiki.libsdl.org/SDL3/SDL_RenderGeometry) for custom polygons
     void DrawViewPort(SDL_Renderer* renderer);
 };

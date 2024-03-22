@@ -1,13 +1,3 @@
-// Dear ImGui: standalone example application for Win32 + OpenGL 3
-
-// Learn about Dear ImGui:
-// - FAQ                  https://dearimgui.com/faq
-// - Getting Started      https://dearimgui.com/getting-started
-// - Documentation        https://dearimgui.com/docs (same as your local docs/ folder).
-// - Introduction, links and more at the top of imgui.cpp
-
-// This is provided for completeness, however it is strongly recommended you use OpenGL with SDL or GLFW.
-
 #include "imgui/imgui_impl_sdl3.h"
 #include "imgui/imgui_impl_sdlrenderer3.h"
 #define SDL_MAIN_HANDLED
@@ -38,20 +28,20 @@ int main(int argc, char* argv[])
     //init Engine
     EngineManager::InitEngine();
 
-    // Main loop
     bool done = false;
-    bool mouseProcessingEvent = false;
-    ImGuiIO& imguiIO = ImGui::GetIO();
+    bool mouseProcessingEvent = false; //This will flip to ensure that our "mouseDown" conditions are not caled every frame the mouse is down
+    ImGuiIO& imguiIO = ImGui::GetIO(); //imguiIO handles the input and output signals for imGui
+
+    //This is our main rendering loop that gets called "every frame"
     while (!done)
     {
         // Poll and handle messages (inputs, window resize, etc.)
-        // See the WndProc() function below for our to dispatch events to the Win32 backend.
         SDL_Event event;
         while (SDL_PollEvent(&event)) {
             if (event.type == SDL_EVENT_QUIT) {
                 done = true;
             } else if (imguiIO.WantCaptureMouse) {
-                //don't handle the this input to SDL/Renderer
+                //don't handle the this input to SDL/Renderer, so we do nothing
             } else if (!mouseProcessingEvent && event.type == SDL_EVENT_MOUSE_BUTTON_DOWN && event.button.button == SDL_BUTTON_LEFT) {
                 mouseProcessingEvent = true;
                 EngineManager::AddToViewPort(mainRenderer, ImVec2(event.button.x, event.button.y), 50.0f, 50.0f);
@@ -68,16 +58,15 @@ int main(int argc, char* argv[])
         ImGui_ImplSDL3_NewFrame();
         ImGui::NewFrame();
 
-        //Render Engine
+        //Add our engine overlay and ImGui stuff to the render stack
         EngineManager::RenderEngine();
-
         ImGui::Render();
 
-        //set background color of renderer
-        SDL_SetRenderDrawColor(mainRenderer, 0, 0, 0, 0);
-        //fills renderer with background color
+        //set background color of renderer and fill it
+        SDL_SetRenderDrawColor(mainRenderer, 20, 20, 20, 255);
         SDL_RenderClear(mainRenderer);
 
+        //Draw our gameObjects and ImGui Overlay from the renderstack
         EngineManager::DrawViewPort(mainRenderer);
         ImGui_ImplSDLRenderer3_RenderDrawData(ImGui::GetDrawData());
 
@@ -85,6 +74,8 @@ int main(int argc, char* argv[])
         SDL_RenderPresent(mainRenderer);
     }
 
+    //shutdown and close all our things
+    EngineManager::CloseEngine();
     ImGui_ImplSDLRenderer3_Shutdown();
     ImGui_ImplSDL3_Shutdown();
     ImGui::DestroyContext();

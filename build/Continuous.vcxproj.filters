@@ -1,17 +1,17 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <CustomBuild Include="C:\Users\Might\OneDrive\Desktop\EngineCoding\Test1\build\CMakeFiles\0746e137314d6a3223e1a43107742c02\Continuous.rule">
+    <CustomBuild Include="D:\GameEngineCoding\build\CMakeFiles\6412f5b905b333292979235c67271683\Continuous.rule">
       <Filter>CMake Rules</Filter>
     </CustomBuild>
-    <CustomBuild Include="C:\Users\Might\OneDrive\Desktop\EngineCoding\Test1\CMakeLists.txt" />
+    <CustomBuild Include="D:\GameEngineCoding\CMakeLists.txt" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="C:\Users\Might\OneDrive\Desktop\EngineCoding\Test1\build\CMakeFiles\Continuous" />
+    <None Include="D:\GameEngineCoding\build\CMakeFiles\Continuous" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="CMake Rules">
-      <UniqueIdentifier>{F94DD35E-FE83-3033-8F72-8CD04D6CB4E7}</UniqueIdentifier>
+      <UniqueIdentifier>{A7A00D69-6639-33BB-99DD-41D6C5B13F60}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>
