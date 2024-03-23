@@ -11,8 +11,10 @@
 //used for getting files from the user
 #include <ShObjIdl_core.h>
 
-//ioStream is mostly for debugging
+//these are used for debugging and saving/loading files
 #include <iostream>
+#include <fstream>
+#include <string>
 
 namespace EngineManager {
     Brush* brush = nullptr;
@@ -104,11 +106,29 @@ namespace EngineManager {
         ImGui::PopStyleColor();
 
         //Handles loading and saving the game engine
-        if (ImGui::Button("Save")) {
+        if (ImGui::Button("Save") && !playing) {
+            SDL_Log("Save dialog");
+            std::string savePath = CreateSaveDialogBox();
+            if (!savePath.empty()) {
+                SDL_Log("Save file");
+                if (!SaveFile(savePath)) {
+                    SDL_Log("Failed to Save");
+                }
+            } else {
+                SDL_Log("Failed to find Save File");
+            }
         }
         ImGui::SameLine();
         //when Stop is hit, read all gameObjects from saved vector and delete memory
-        if (ImGui::Button("Load")) {
+        if (ImGui::Button("Load") && !playing) {
+            std::string loadPath = CreateLoadDialogBox();
+            if (!loadPath.empty()) {
+                if (!LoadFile(loadPath)) {
+                    SDL_Log("Failed to Load");
+                }
+            } else {
+                SDL_Log("Failed to find Load File");
+            }
         }
 
         //Handles the play and Stop functionality
@@ -208,5 +228,106 @@ namespace EngineManager {
         for (GameObject* gObj : objectsToLoad) {
             gObj->Update();
         }
+    }
+
+    //These are all the functions that handle saving and loading files in/out of the engine
+    bool LoadFile(std::string path) {
+        //first, load the file
+        std::ifstream srcFile(path);
+        std::string input;
+        //then delete the current game
+        for (GameObject* gObj : objectsToLoad) {
+            delete gObj;
+        }
+        objectsToLoad.clear();
+        //then, read new gameObjects from the file
+        while (std::getline(srcFile, input)) {
+            std::cout << input << std::endl;
+            size_t lineIndex = 0;
+            std::string gObjPiece = "";
+            std::vector<std::string> gObjPieces = std::vector<std::string>();
+            while ((lineIndex = input.find(':')) != std::string::npos) {
+                gObjPiece = input.substr(0, input.find(':'));
+                std::cout << gObjPiece << std::endl;
+                gObjPieces.push_back(gObjPiece);
+                input.erase(0, lineIndex + 1);
+            }
+            //this assumes that the last item of the saved gameobj is always the texture path
+            AddToViewPort(ImVec2(std::stof(gObjPieces[0]), std::stof(gObjPieces[1])), std::stof(gObjPieces[6]), std::stof(gObjPieces[7]), input);
+        }
+        srcFile.close();
+        return true;
+    }
+    bool SaveFile(std::string path) {
+        //write all the gameObjects to the file, each terminated by new line (\n)
+        std::ofstream dstFile(path, std::ofstream::trunc);
+        std::string newLine = "";
+        for (GameObject* gObj : objectsToLoad) {
+            newLine += std::to_string(gObj->position.x) + ":";
+            newLine += std::to_string(gObj->position.y) + ":";
+            newLine += std::to_string(gObj->color.r) + ":";
+            newLine += std::to_string(gObj->color.g) + ":";
+            newLine += std::to_string(gObj->color.b) + ":";
+            newLine += std::to_string(gObj->color.a) + ":";
+            newLine += std::to_string(gObj->width) + ":";
+            newLine += std::to_string(gObj->height) + ":";
+            newLine += gObj->GetFilePath();
+            newLine += "\n";
+            dstFile << newLine;
+            newLine = "";
+        }
+        dstFile.close();
+        return true;
+    }
+    //Code largely copied from post: https://cplusplus.com/forum/windows/275617/ made by freddie1
+    //This opens the Windows file explorer boxes for users to navigate
+    std::string CreateLoadDialogBox() {
+        COMDLG_FILTERSPEC ComDlgFS[1] = {{L"Smol GameEngine (*.smol)", L"*.smol"}};
+        IFileOpenDialog* pFileOpen = nullptr;
+        IShellItem* pShellItem = nullptr;
+        wchar_t* ppszName = nullptr;
+        std::string finalPath = "";
+
+        CoInitialize(NULL);
+        CoCreateInstance(CLSID_FileOpenDialog, NULL, CLSCTX_INPROC_SERVER, IID_IFileOpenDialog, (void**)(&pFileOpen));
+        pFileOpen->SetFileTypes(1, ComDlgFS);
+        pFileOpen->Show(0);
+        pFileOpen->GetResult(&pShellItem);
+        if (pShellItem != nullptr) {
+            pShellItem->GetDisplayName(SIGDN_FILESYSPATH,&ppszName);
+            std::wstring ws(ppszName);
+            std::string filePath(ws.begin(), ws.end());
+            finalPath = filePath;
+            pShellItem->Release();
+        }
+        pFileOpen->Release();    
+        CoUninitialize();
+        return finalPath;
+    }
+    std::string CreateSaveDialogBox() {
+        COMDLG_FILTERSPEC ComDlgFS[1] = {{L"Smol GameEngine (*.smol)", L"*.smol"}};
+        IFileSaveDialog* pFileSave = nullptr;
+        IShellItem* pShellItem = nullptr;
+        wchar_t* ppszName = nullptr;
+        std::string finalPath = "";
+
+        CoInitialize(NULL);
+        CoCreateInstance(CLSID_FileSaveDialog, NULL, CLSCTX_INPROC_SERVER, IID_IFileSaveDialog, (void**)(&pFileSave));
+        pFileSave->SetFileTypes(1, ComDlgFS);
+        pFileSave->Show(0);
+        pFileSave->GetResult(&pShellItem);
+        if (pShellItem != nullptr) {
+            pShellItem->GetDisplayName(SIGDN_FILESYSPATH,&ppszName);
+            std::wstring ws(ppszName);
+            std::string filePath(ws.begin(), ws.end());
+            if (filePath.substr(filePath.length() - 5) != ".smol") filePath += ".smol";
+            std::ofstream dstFile(filePath);
+            finalPath = filePath;
+            dstFile.close();
+            pShellItem->Release();
+        }
+        pFileSave->Release();
+        CoUninitialize();
+        return finalPath;
     }
 }

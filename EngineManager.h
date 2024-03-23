@@ -32,6 +32,8 @@ namespace EngineManager {
     void UpdateGameObjects();
 
     //Saves and Loads the project from a file
-    bool LoadFile();
-    bool SaveFile();
+    bool LoadFile(std::string path);
+    bool SaveFile(std::string path);
+    std::string CreateLoadDialogBox();
+    std::string CreateSaveDialogBox();
 };
