@@ -28,6 +28,9 @@
     <ClCompile Include="D:\GameEngineCoding\Brush.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="D:\GameEngineCoding\GameObject.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="D:\GameEngineCoding\EngineManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

@@ -1,37 +1,56 @@
+//Custom scritps
 #include "EngineManager.h"
 #include "Brush.h"
+#include "GameObject.h"
+
+//SDL and ImGui database
 #include "imgui/imgui.h"
 #include "SDL3/SDL.h"
 #include "SDL3/SDL_image.h"
+
+//used for getting files from the user
+#include <ShObjIdl_core.h>
+
+//ioStream is mostly for debugging
 #include <iostream>
 
 namespace EngineManager {
     Brush* brush = nullptr;
     std::vector<GameObject*> objectsToLoad = std::vector<GameObject*>();
+    bool playing = false;
+    std::vector<GameObject*> savedObjects = std::vector<GameObject*>();
     GameObject* selectedObject = nullptr;
 
-    //Initialized the engine by creating out brush (and other stuff eventually)
-    void InitEngine() {
-        brush = new Brush();
-    }
+    SDL_Renderer* currRenderer = nullptr;
 
+    //Initialized the engine by creating out brush (and other stuff eventually)
+    void InitEngine(SDL_Renderer* renderer) {
+        brush = new Brush();
+        currRenderer = renderer;
+    }
     //remove all our allocated memory
     void CloseEngine() {
         delete brush;
         brush = NULL;
         for (GameObject* gObj : objectsToLoad) {
             delete gObj;
-            gObj = NULL;
         }
+        objectsToLoad.clear();
+        for (GameObject* gObj : savedObjects) {
+            delete gObj;
+        }
+        savedObjects.clear();
         //selectedObj is still in list of objectsToLoad, so it already
         //was deleted, but we still need to nullify the pointer
         selectedObject = NULL;
+        currRenderer = NULL;
     }
 
     //Main Render Loop for our engine interface
     void RenderEngine() {
         MakeTools();
         MakeInspector();
+        MakeControlBoard();
     }
 
     //makes the tool window and sets up its logic
@@ -51,13 +70,12 @@ namespace EngineManager {
         }
         ImGui::End();
     }
-
     //creates the inspector window and sets up its logic
     void MakeInspector() {
         ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0, 0, 0, 1));
         ImGui::Begin("Object Inspector");
         ImGui::PopStyleColor();
-        if (selectedObject) {
+        if (selectedObject != nullptr) {
             //display data
             ImGui::SliderFloat("X Pos", &selectedObject->position.x, 0, 1280);
             ImGui::SliderFloat("Y Pos", &selectedObject->position.y, 0, 720);
@@ -79,10 +97,65 @@ namespace EngineManager {
         }
         ImGui::End();
     }
+    //makes the control board for running the game and editing configurations
+    void MakeControlBoard() {
+        ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0, 0, 0, 1));
+        ImGui::Begin("Control Board");
+        ImGui::PopStyleColor();
+
+        //Handles loading and saving the game engine
+        if (ImGui::Button("Save")) {
+        }
+        ImGui::SameLine();
+        //when Stop is hit, read all gameObjects from saved vector and delete memory
+        if (ImGui::Button("Load")) {
+        }
+
+        //Handles the play and Stop functionality
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.4f, 0.4f, 0.7f, 1));
+        if (!playing) ImGui::PopStyleColor();
+        bool playJustHit = false;
+        //when Play is hit, write all gameObjects to a vector
+        if (ImGui::Button("Play")) {
+            selectedObject = nullptr;
+            if (!playing) {
+                playJustHit = true;
+                for (GameObject* gObj : objectsToLoad) {
+                    GameObject* newObj = new GameObject(currRenderer, gObj->position, gObj->width, gObj->height, gObj->GetFilePath());
+                    newObj->SetTextureFromeFile(currRenderer, newObj->GetFilePath());
+                    savedObjects.push_back(newObj);
+                }
+            }
+            playing = true;
+        }
+        if (playing && !playJustHit) ImGui::PopStyleColor();
+        ImGui::SameLine();
+        //when Stop is hit, read all gameObjects from saved vector and delete memory
+        if (ImGui::Button("Stop")) {
+            selectedObject = nullptr;
+            if (playing) {
+                for (GameObject* gObj : objectsToLoad) {
+                    delete gObj; //This delete's the gomeObjects
+                }
+                objectsToLoad.clear(); //This delete's the pointers
+                for (GameObject* gObj : savedObjects) {
+                    GameObject* newObj = new GameObject(currRenderer, gObj->position, gObj->width, gObj->height, gObj->GetFilePath());
+                    newObj->SetTextureFromeFile(currRenderer, newObj->GetFilePath());
+                    objectsToLoad.push_back(newObj);
+                    delete gObj;
+                }
+                savedObjects.clear();
+            }
+            playing = false;
+        }
+        ImGui::End();
+    }
+    
+    //Logic for Selection of GameObjects
     void SelectObject(GameObject* clickedObj) {
         selectedObject = clickedObj;
     }
-    GameObject* FindSelectedObject(SDL_Renderer* renderer, ImVec2 clickedPos) {
+    GameObject* FindSelectedObject(ImVec2 clickedPos) {
         for (GameObject* gObj : objectsToLoad) {
             //find if the clicked position is on the object's rectangle
             float leftLimit = gObj->position.x - (gObj->width / 2);
@@ -103,22 +176,21 @@ namespace EngineManager {
     void AddToViewPort(GameObject* gameObject) {
         objectsToLoad.push_back(gameObject);
     }
-    void AddToViewPort(SDL_Renderer* renderer, ImVec2 targetPos, float targetWidth, float targetHeight, std::string textureFile) {
+    void AddToViewPort(ImVec2 targetPos, float targetWidth, float targetHeight, std::string textureFile) {
         GameObject* newObj = nullptr;
         if (textureFile.empty()) {
             if (brush->getTextureFile().empty()) {
                 SDL_Log("No brush texture was chosen!");
                 return;
             }
-            newObj = new GameObject(renderer, targetPos, targetWidth, targetHeight, brush->getTextureFile());
+            newObj = new GameObject(currRenderer, targetPos, targetWidth, targetHeight, brush->getTextureFile());
         } else {
-            newObj = new GameObject(renderer, targetPos, targetWidth, targetHeight, textureFile);
+            newObj = new GameObject(currRenderer, targetPos, targetWidth, targetHeight, textureFile);
         }
         objectsToLoad.push_back(newObj);
     }
-
     //handles the actual drawing of textures
-    void DrawViewPort(SDL_Renderer* renderer) {
+    void DrawViewPort() {
         //go over every object, make a rectangle, and apply the texture
         for (GameObject* gObj : objectsToLoad) {
             SDL_FRect texture_rect;
@@ -126,7 +198,15 @@ namespace EngineManager {
             texture_rect.y = gObj->position.y - (gObj->height / 2);
             texture_rect.w = gObj->width;
             texture_rect.h = gObj->height;
-            SDL_RenderTexture(renderer, gObj->targetTexture, NULL, &texture_rect);
+            SDL_RenderTexture(currRenderer, gObj->GetTexturePtr(), NULL, &texture_rect);
+        }
+    }
+
+    //Runs the Update Loop on gameObjects when playing
+    void UpdateGameObjects() {
+        if (!playing) return;
+        for (GameObject* gObj : objectsToLoad) {
+            gObj->Update();
         }
     }
 }

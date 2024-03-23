@@ -26,7 +26,7 @@ int main(int argc, char* argv[])
     ImGui_ImplSDLRenderer3_Init(mainRenderer);
 
     //init Engine
-    EngineManager::InitEngine();
+    EngineManager::InitEngine(mainRenderer);
 
     bool done = false;
     bool mouseProcessingEvent = false; //This will flip to ensure that our "mouseDown" conditions are not caled every frame the mouse is down
@@ -35,6 +35,7 @@ int main(int argc, char* argv[])
     //This is our main rendering loop that gets called "every frame"
     while (!done)
     {
+        EngineManager::UpdateGameObjects();
 
         ImGui_ImplSDLRenderer3_NewFrame();
         ImGui_ImplSDL3_NewFrame();
@@ -49,7 +50,7 @@ int main(int argc, char* argv[])
         SDL_RenderClear(mainRenderer);
 
         //Draw our gameObjects and ImGui Overlay from the renderstack
-        EngineManager::DrawViewPort(mainRenderer);
+        EngineManager::DrawViewPort();
         ImGui_ImplSDLRenderer3_RenderDrawData(ImGui::GetDrawData());
 
         // Poll and handle messages (inputs, window resize, etc.)
@@ -61,11 +62,11 @@ int main(int argc, char* argv[])
                 //don't handle the this input to SDL/Renderer, so we do nothing
             } else if (!mouseProcessingEvent && event.type == SDL_EVENT_MOUSE_BUTTON_DOWN && event.button.button == SDL_BUTTON_LEFT) {
                 mouseProcessingEvent = true;
-                EngineManager::AddToViewPort(mainRenderer, ImVec2(event.button.x, event.button.y), 50.0f, 50.0f);
+                EngineManager::AddToViewPort(ImVec2(event.button.x, event.button.y), 50.0f, 50.0f);
             } else if (mouseProcessingEvent && event.type == SDL_EVENT_MOUSE_BUTTON_UP && event.button.button == SDL_BUTTON_LEFT) {
                 mouseProcessingEvent = false;
             } else if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN && event.button.button == SDL_BUTTON_RIGHT) {
-                EngineManager::SelectObject(EngineManager::FindSelectedObject(mainRenderer, ImVec2(event.button.x, event.button.y)));
+                EngineManager::SelectObject(EngineManager::FindSelectedObject(ImVec2(event.button.x, event.button.y)));
             }
             ImGui_ImplSDL3_ProcessEvent(&event);
         }

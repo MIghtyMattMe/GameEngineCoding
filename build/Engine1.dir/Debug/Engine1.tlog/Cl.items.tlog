@@ -7,5 +7,6 @@ D:\GameEngineCoding\imgui\imgui_impl_sdl3.cpp;D:\GameEngineCoding\build\Engine1.
 D:\GameEngineCoding\imgui\imgui_impl_sdlrenderer3.cpp;D:\GameEngineCoding\build\Engine1.dir\Debug\imgui_impl_sdlrenderer3.obj
 D:\GameEngineCoding\imgui\imgui_impl_win32.cpp;D:\GameEngineCoding\build\Engine1.dir\Debug\imgui_impl_win32.obj
 D:\GameEngineCoding\Brush.cpp;D:\GameEngineCoding\build\Engine1.dir\Debug\Brush.obj
+D:\GameEngineCoding\GameObject.cpp;D:\GameEngineCoding\build\Engine1.dir\Debug\GameObject.obj
 D:\GameEngineCoding\EngineManager.cpp;D:\GameEngineCoding\build\Engine1.dir\Debug\EngineManager.obj
 D:\GameEngineCoding\main.cpp;D:\GameEngineCoding\build\Engine1.dir\Debug\main.obj
