@@ -36,4 +36,8 @@ namespace EngineManager {
     bool SaveFile(std::string path);
     std::string CreateLoadDialogBox();
     std::string CreateSaveDialogBox();
+
+    //Controlling the Camera offset
+    ImVec2 GetCameraPosition();
+    void SetCameraPosition(ImVec2 newPos);
 };

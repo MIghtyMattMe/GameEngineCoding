@@ -29,7 +29,7 @@ int main(int argc, char* argv[])
     EngineManager::InitEngine(mainRenderer);
 
     bool done = false;
-    bool mouseProcessingEvent = false; //This will flip to ensure that our "mouseDown" conditions are not caled every frame the mouse is down
+    bool mouseMiddleDown = false; //This is for knowing when to move the camera
     ImGuiIO& imguiIO = ImGui::GetIO(); //imguiIO handles the input and output signals for imGui
 
     //This is our main rendering loop that gets called "every frame"
@@ -56,18 +56,37 @@ int main(int argc, char* argv[])
         // Poll and handle messages (inputs, window resize, etc.)
         SDL_Event event;
         while (SDL_PollEvent(&event)) {
+            //handles closing the tab
             if (event.type == SDL_EVENT_QUIT) {
                 done = true;
             } else if (imguiIO.WantCaptureMouse) {
                 //don't handle the this input to SDL/Renderer, so we do nothing
-            } else if (!mouseProcessingEvent && event.type == SDL_EVENT_MOUSE_BUTTON_DOWN && event.button.button == SDL_BUTTON_LEFT) {
-                mouseProcessingEvent = true;
+            }
+            
+            //handles paint objects with the brush
+            else if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN && event.button.button == SDL_BUTTON_LEFT) {
                 EngineManager::AddToViewPort(ImVec2(event.button.x, event.button.y), 50.0f, 50.0f);
-            } else if (mouseProcessingEvent && event.type == SDL_EVENT_MOUSE_BUTTON_UP && event.button.button == SDL_BUTTON_LEFT) {
-                mouseProcessingEvent = false;
-            } else if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN && event.button.button == SDL_BUTTON_RIGHT) {
+            }
+            
+            //handles selecting an object
+            else if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN && event.button.button == SDL_BUTTON_RIGHT) {
                 EngineManager::SelectObject(EngineManager::FindSelectedObject(ImVec2(event.button.x, event.button.y)));
             }
+
+            //handles moving the camera and zooming the camera
+            else if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN && event.button.button == SDL_BUTTON_MIDDLE) {
+                mouseMiddleDown = true;
+            } else if (event.type == SDL_EVENT_MOUSE_BUTTON_UP && event.button.button == SDL_BUTTON_MIDDLE) {
+                mouseMiddleDown = false;
+            } else if (mouseMiddleDown && event.type == SDL_EVENT_MOUSE_MOTION) {
+                ImVec2 newCamPos = EngineManager::GetCameraPosition();
+                newCamPos.x += event.motion.xrel;
+                newCamPos.y += event.motion.yrel;
+                EngineManager::SetCameraPosition(newCamPos);
+            } else if (event.type == SDL_EVENT_MOUSE_WHEEL) {
+                //zoom
+            }
+
             ImGui_ImplSDL3_ProcessEvent(&event);
         }
         if (done) {

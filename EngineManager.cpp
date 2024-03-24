@@ -25,6 +25,8 @@ namespace EngineManager {
 
     SDL_Renderer* currRenderer = nullptr;
 
+    ImVec2 cameraPos = ImVec2(0, 0);
+
     //Initialized the engine by creating out brush (and other stuff eventually)
     void InitEngine(SDL_Renderer* renderer) {
         brush = new Brush();
@@ -178,10 +180,10 @@ namespace EngineManager {
     GameObject* FindSelectedObject(ImVec2 clickedPos) {
         for (GameObject* gObj : objectsToLoad) {
             //find if the clicked position is on the object's rectangle
-            float leftLimit = gObj->position.x - (gObj->width / 2);
-            float rightLimit = gObj->position.x + (gObj->width / 2);
-            float upLimit = gObj->position.y - (gObj->height / 2);
-            float downLimit = gObj->position.y + (gObj->height / 2);
+            float leftLimit = gObj->position.x - (gObj->width / 2) + cameraPos.x;
+            float rightLimit = gObj->position.x + (gObj->width / 2) + cameraPos.x;
+            float upLimit = gObj->position.y - (gObj->height / 2) + cameraPos.y;
+            float downLimit = gObj->position.y + (gObj->height / 2) + cameraPos.y;
             if (clickedPos.x < rightLimit && 
             clickedPos.x > leftLimit &&
             clickedPos.y < downLimit &&
@@ -198,6 +200,8 @@ namespace EngineManager {
     }
     void AddToViewPort(ImVec2 targetPos, float targetWidth, float targetHeight, std::string textureFile) {
         GameObject* newObj = nullptr;
+        targetPos.x = targetPos.x - cameraPos.x;
+        targetPos.y = targetPos.y - cameraPos.y;
         if (textureFile.empty()) {
             if (brush->getTextureFile().empty()) {
                 SDL_Log("No brush texture was chosen!");
@@ -214,8 +218,8 @@ namespace EngineManager {
         //go over every object, make a rectangle, and apply the texture
         for (GameObject* gObj : objectsToLoad) {
             SDL_FRect texture_rect;
-            texture_rect.x = gObj->position.x - (gObj->width / 2); //subtracting half width/height makes the image centered on the mouse
-            texture_rect.y = gObj->position.y - (gObj->height / 2);
+            texture_rect.x = gObj->position.x - (gObj->width / 2) + cameraPos.x; //subtracting half width/height makes the image centered on the mouse
+            texture_rect.y = gObj->position.y - (gObj->height / 2) + cameraPos.y;
             texture_rect.w = gObj->width;
             texture_rect.h = gObj->height;
             SDL_RenderTexture(currRenderer, gObj->GetTexturePtr(), NULL, &texture_rect);
@@ -228,6 +232,14 @@ namespace EngineManager {
         for (GameObject* gObj : objectsToLoad) {
             gObj->Update();
         }
+    }
+
+    //Controlling the Camera offset
+    ImVec2 GetCameraPosition() {
+        return cameraPos;
+    }
+    void SetCameraPosition(ImVec2 newPos) {
+        cameraPos = newPos;
     }
 
     //These are all the functions that handle saving and loading files in/out of the engine
