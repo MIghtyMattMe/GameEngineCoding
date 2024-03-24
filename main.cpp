@@ -83,8 +83,6 @@ int main(int argc, char* argv[])
                 newCamPos.x += event.motion.xrel;
                 newCamPos.y += event.motion.yrel;
                 EngineManager::SetCameraPosition(newCamPos);
-            } else if (event.type == SDL_EVENT_MOUSE_WHEEL) {
-                //zoom
             }
 
             ImGui_ImplSDL3_ProcessEvent(&event);
