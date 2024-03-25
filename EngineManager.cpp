@@ -8,6 +8,9 @@
 #include "SDL3/SDL.h"
 #include "SDL3/SDL_image.h"
 
+//Box2D is the physics library
+#include "box2d/box2d.h"
+
 //used for getting files from the user
 #include <ShObjIdl_core.h>
 
@@ -17,15 +20,22 @@
 #include <string>
 
 namespace EngineManager {
+    //Misc engine parts that we use
     Brush* brush = nullptr;
-    std::vector<GameObject*> objectsToLoad = std::vector<GameObject*>();
     bool playing = false;
+    ImVec2 cameraPos = ImVec2(0, 0);
+
+    //These are our gameobjects in the world
+    std::vector<GameObject*> objectsToLoad = std::vector<GameObject*>();
     std::vector<GameObject*> savedObjects = std::vector<GameObject*>();
     GameObject* selectedObject = nullptr;
 
-    SDL_Renderer* currRenderer = nullptr;
+    //physics variables and world
+    b2Vec2 gravity = b2Vec2(0.0f, -10.0f);
+    b2World* phyWorld;
 
-    ImVec2 cameraPos = ImVec2(0, 0);
+    //gets the renderer, so fuctions do not have to constantly ask for it
+    SDL_Renderer* currRenderer = nullptr;
 
     //Initialized the engine by creating out brush (and other stuff eventually)
     void InitEngine(SDL_Renderer* renderer) {
@@ -240,6 +250,14 @@ namespace EngineManager {
     }
     void SetCameraPosition(ImVec2 newPos) {
         cameraPos = newPos;
+    }
+
+    //these are used for physics world creation in main.cpp
+    b2Vec2 GetGravityVector() {
+        return gravity;
+    }
+    void SetPhyWorld(b2World* world) {
+        phyWorld = world;
     }
 
     //These are all the functions that handle saving and loading files in/out of the engine

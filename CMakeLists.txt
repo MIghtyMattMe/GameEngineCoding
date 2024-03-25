@@ -24,7 +24,7 @@ add_executable(Engine1    imgui/imgui_demo.cpp
                           main.cpp
                 )
 
-target_link_libraries(Engine1 ${OPENGL_gl_LIBRARY} ${CMAKE_CURRENT_SOURCE_DIR}/lib/SDL3.lib ${CMAKE_CURRENT_SOURCE_DIR}/lib/SDL3_test.lib ${CMAKE_CURRENT_SOURCE_DIR}/lib/SDL3_image.lib)
+target_link_libraries(Engine1 ${OPENGL_gl_LIBRARY} ${CMAKE_CURRENT_SOURCE_DIR}/lib/SDL3.lib ${CMAKE_CURRENT_SOURCE_DIR}/lib/SDL3_test.lib ${CMAKE_CURRENT_SOURCE_DIR}/lib/SDL3_image.lib ${CMAKE_CURRENT_SOURCE_DIR}/lib/box2d.lib)
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
 

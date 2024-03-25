@@ -2,6 +2,7 @@
 #include "imgui/imgui.h"
 #include "SDL3/SDL.h"
 #include "SDL3/SDL_image.h"
+#include "box2d/box2d.h"
 #include <vector>
 #include <string>
 
@@ -11,6 +12,7 @@ class GameObject {
         ~GameObject();
 
         //variables of a gameobject
+        b2BodyDef objBody;
         ImVec2 position;
         SDL_Color color;
         float width;

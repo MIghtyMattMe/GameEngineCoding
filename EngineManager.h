@@ -2,6 +2,7 @@
 #include "imgui/imgui.h"
 #include "SDL3/SDL.h"
 #include "SDL3/SDL_image.h"
+#include "box2d/box2d.h"
 #include "GameObject.h"
 #include <vector>
 #include <string>
@@ -40,4 +41,8 @@ namespace EngineManager {
     //Controlling the Camera offset
     ImVec2 GetCameraPosition();
     void SetCameraPosition(ImVec2 newPos);
+
+    //these are used for physics world creation in main.cpp
+    b2Vec2 GetGravityVector();
+    void SetPhyWorld(b2World* world);
 };

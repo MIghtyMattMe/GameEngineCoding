@@ -3,6 +3,7 @@
 #define SDL_MAIN_HANDLED
 #include "SDL3/SDL.h"
 #include "imgui/imgui.h"
+#include "box2d/box2d.h"
 
 #include "EngineManager.h"
 
@@ -27,6 +28,9 @@ int main(int argc, char* argv[])
 
     //init Engine
     EngineManager::InitEngine(mainRenderer);
+    //create and set the physics world for the engine manager
+    b2World phyWorld(EngineManager::GetGravityVector());
+    EngineManager::SetPhyWorld(&phyWorld);
 
     bool done = false;
     bool mouseMiddleDown = false; //This is for knowing when to move the camera
