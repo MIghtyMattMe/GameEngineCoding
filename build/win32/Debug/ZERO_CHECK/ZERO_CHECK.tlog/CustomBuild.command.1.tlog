@@ -1,6 +1,6 @@
 ^D:\GAMEENGINECODING\BUILD\CMAKEFILES\6412F5B905B333292979235C67271683\GENERATE.STAMP.RULE
 setlocal
-"C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" -SD:/GameEngineCoding -BD:/GameEngineCoding/build --check-stamp-list CMakeFiles/generate.stamp.list --vs-solution-file D:/GameEngineCoding/build/Engine1.sln
+"C:\Program Files\CMake\bin\cmake.exe" -SD:/GameEngineCoding -BD:/GameEngineCoding/build --check-stamp-list CMakeFiles/generate.stamp.list --vs-solution-file D:/GameEngineCoding/build/Engine1.sln
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone

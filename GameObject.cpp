@@ -6,7 +6,7 @@
 #include <iostream>
 
 GameObject::GameObject(SDL_Renderer* renderer, b2BodyDef targetBody, float targetWidth, float targetHeight, std::string textureFile) {
-    objBody = targetBody;
+    objBodyDef = targetBody;
     width = targetWidth;
     height = targetHeight;
     SetTextureFromeFile(renderer, textureFile);
@@ -14,6 +14,7 @@ GameObject::GameObject(SDL_Renderer* renderer, b2BodyDef targetBody, float targe
 GameObject::~GameObject() {
     if (targetTexture != nullptr || targetTexture != NULL) SDL_DestroyTexture(targetTexture);
     targetTexture = NULL;
+    objBody = NULL;
 }
 
 void GameObject::SetTextureFromeFile(SDL_Renderer* renderer, std::string textureFile) {

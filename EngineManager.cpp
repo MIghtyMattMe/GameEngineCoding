@@ -18,6 +18,7 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <algorithm>
 
 namespace EngineManager {
     //Misc engine parts that we use
@@ -91,13 +92,13 @@ namespace EngineManager {
         ImGui::PopStyleColor();
         if (selectedObject != nullptr) {
             //display data
-            float xPos = selectedObject->objBody.position.x;
-            float yPos = selectedObject->objBody.position.y;
+            float xPos = selectedObject->objBodyDef.position.x;
+            float yPos = selectedObject->objBodyDef.position.y;
             ImGui::SliderFloat("X Pos", &xPos, 0, 50);
             ImGui::SliderFloat("Y Pos", &yPos, 0, 20);
             ImGui::SliderFloat("Width", &selectedObject->width, 0.1f, 30);
             ImGui::SliderFloat("Height", &selectedObject->height, 0.1f, 30);
-            selectedObject->objBody.position.Set(xPos, yPos);
+            selectedObject->objBodyDef.position.Set(xPos, yPos);
             if (ImGui::Button("Delete")) {
                 for (size_t i = 0; i < objectsToLoad.size(); i++) {
                     if (*objectsToLoad[i] == *selectedObject) {
@@ -157,8 +158,8 @@ namespace EngineManager {
                 playJustHit = true;
                 for (GameObject* gObj : objectsToLoad) {
                     b2BodyDef newBody;
-                    newBody.position.Set(gObj->objBody.position.x, gObj->objBody.position.y);
-                    newBody.type = gObj->objBody.type;
+                    newBody.position.Set(gObj->objBodyDef.position.x, gObj->objBodyDef.position.y);
+                    newBody.type = gObj->objBodyDef.type;
                     GameObject* newObj = new GameObject(currRenderer, newBody, gObj->width, gObj->height, gObj->GetFilePath());
                     newObj->SetTextureFromeFile(currRenderer, newObj->GetFilePath());
                     savedObjects.push_back(newObj);
@@ -173,13 +174,14 @@ namespace EngineManager {
             selectedObject = nullptr;
             if (playing) {
                 for (GameObject* gObj : objectsToLoad) {
+                    if (gObj->objBody != nullptr) phyWorld->DestroyBody(gObj->objBody);
                     delete gObj; //This delete's the gomeObjects
                 }
                 objectsToLoad.clear(); //This delete's the pointers
                 for (GameObject* gObj : savedObjects) {
                     b2BodyDef newBody;
-                    newBody.position.Set(gObj->objBody.position.x, gObj->objBody.position.y);
-                    newBody.type = gObj->objBody.type;
+                    newBody.position.Set(gObj->objBodyDef.position.x, gObj->objBodyDef.position.y);
+                    newBody.type = gObj->objBodyDef.type;
                     GameObject* newObj = new GameObject(currRenderer, newBody, gObj->width, gObj->height, gObj->GetFilePath());
                     newObj->SetTextureFromeFile(currRenderer, newObj->GetFilePath());
                     objectsToLoad.push_back(newObj);
@@ -200,10 +202,10 @@ namespace EngineManager {
         clickedPos += cameraPos;
         for (GameObject* gObj : objectsToLoad) {
             //find if the clicked position is on the object's rectangle
-            float leftLimit = gObj->objBody.position.x - (gObj->width / 2);
-            float rightLimit = gObj->objBody.position.x + (gObj->width / 2);
-            float upLimit = gObj->objBody.position.y - (gObj->height / 2);
-            float downLimit = gObj->objBody.position.y + (gObj->height / 2);
+            float leftLimit = gObj->objBodyDef.position.x - (gObj->width / 2);
+            float rightLimit = gObj->objBodyDef.position.x + (gObj->width / 2);
+            float upLimit = gObj->objBodyDef.position.y - (gObj->height / 2);
+            float downLimit = gObj->objBodyDef.position.y + (gObj->height / 2);
             if (clickedPos.x < rightLimit && 
             clickedPos.x > leftLimit &&
             clickedPos.y < downLimit &&
@@ -239,8 +241,8 @@ namespace EngineManager {
         //go over every object, make a rectangle, and apply the texture
         for (GameObject* gObj : objectsToLoad) {
             SDL_FRect texture_rect;
-            texture_rect.x = MeterToPixel(gObj->objBody.position.x - (gObj->width / 2) - cameraPos.x);
-            texture_rect.y = MeterToPixel(gObj->objBody.position.y - (gObj->height / 2) - cameraPos.y);
+            texture_rect.x = MeterToPixel(gObj->objBodyDef.position.x - (gObj->width / 2) - cameraPos.x);
+            texture_rect.y = MeterToPixel(gObj->objBodyDef.position.y - (gObj->height / 2) - cameraPos.y);
             texture_rect.w = MeterToPixel(gObj->width);
             texture_rect.h = MeterToPixel(gObj->height);
             SDL_RenderTexture(currRenderer, gObj->GetTexturePtr(), NULL, &texture_rect);
@@ -307,8 +309,8 @@ namespace EngineManager {
         std::ofstream dstFile(path, std::ofstream::trunc);
         std::string newLine = "";
         for (GameObject* gObj : objectsToLoad) {
-            newLine += std::to_string(gObj->objBody.position.x) + ":";
-            newLine += std::to_string(gObj->objBody.position.y) + ":";
+            newLine += std::to_string(gObj->objBodyDef.position.x) + ":";
+            newLine += std::to_string(gObj->objBodyDef.position.y) + ":";
             newLine += std::to_string(gObj->color.r) + ":";
             newLine += std::to_string(gObj->color.g) + ":";
             newLine += std::to_string(gObj->color.b) + ":";
@@ -364,6 +366,9 @@ namespace EngineManager {
             pShellItem->GetDisplayName(SIGDN_FILESYSPATH,&ppszName);
             std::wstring ws(ppszName);
             std::string filePath(ws.begin(), ws.end());
+            std::transform(ws.begin(), ws.end(), std::back_inserter(filePath), [] (wchar_t c) {
+                return (char)c;
+            });
             if (filePath.substr(filePath.length() - 5) != ".smol") filePath += ".smol";
             std::ofstream dstFile(filePath);
             finalPath = filePath;

@@ -12,8 +12,8 @@ class GameObject {
         ~GameObject();
 
         //variables of a gameobject
-        b2BodyDef objBody;
-        //b2FixtureDef objFixture;
+        b2BodyDef objBodyDef;
+        b2Body* objBody = nullptr;
         SDL_Color color;
         float width;
         float height;
@@ -30,8 +30,8 @@ class GameObject {
 
         //operator overrides for checking this data structure
         bool operator==(GameObject other) {
-            if (objBody.position.x != other.objBody.position.x) return false;
-            if (objBody.position.y != other.objBody.position.y) return false;
+            if (objBodyDef.position.x != other.objBodyDef.position.x) return false;
+            if (objBodyDef.position.y != other.objBodyDef.position.y) return false;
             if (width != other.width) return false;
             if (height != other.height) return false;
             if (color.r != other.color.r) return false;
