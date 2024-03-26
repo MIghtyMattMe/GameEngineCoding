@@ -23,7 +23,7 @@ namespace EngineManager {
     //Misc engine parts that we use
     Brush* brush = nullptr;
     bool playing = false;
-    ImVec2 cameraPos = ImVec2(0, 0);
+    b2Vec2 cameraPos = b2Vec2(0, 0);
 
     //These are our gameobjects in the world
     std::vector<GameObject*> objectsToLoad = std::vector<GameObject*>();
@@ -91,10 +91,13 @@ namespace EngineManager {
         ImGui::PopStyleColor();
         if (selectedObject != nullptr) {
             //display data
-            ImGui::SliderFloat("X Pos", &selectedObject->position.x, 0, 1280);
-            ImGui::SliderFloat("Y Pos", &selectedObject->position.y, 0, 720);
-            ImGui::SliderFloat("Width", &selectedObject->width, 0, 1000);
-            ImGui::SliderFloat("Height", &selectedObject->height, 0, 1000);
+            float xPos = selectedObject->objBody.position.x;
+            float yPos = selectedObject->objBody.position.y;
+            ImGui::SliderFloat("X Pos", &xPos, 0, 50);
+            ImGui::SliderFloat("Y Pos", &yPos, 0, 20);
+            ImGui::SliderFloat("Width", &selectedObject->width, 0.1f, 30);
+            ImGui::SliderFloat("Height", &selectedObject->height, 0.1f, 30);
+            selectedObject->objBody.position.Set(xPos, yPos);
             if (ImGui::Button("Delete")) {
                 for (size_t i = 0; i < objectsToLoad.size(); i++) {
                     if (*objectsToLoad[i] == *selectedObject) {
@@ -153,7 +156,10 @@ namespace EngineManager {
             if (!playing) {
                 playJustHit = true;
                 for (GameObject* gObj : objectsToLoad) {
-                    GameObject* newObj = new GameObject(currRenderer, gObj->position, gObj->width, gObj->height, gObj->GetFilePath());
+                    b2BodyDef newBody;
+                    newBody.position.Set(gObj->objBody.position.x, gObj->objBody.position.y);
+                    newBody.type = gObj->objBody.type;
+                    GameObject* newObj = new GameObject(currRenderer, newBody, gObj->width, gObj->height, gObj->GetFilePath());
                     newObj->SetTextureFromeFile(currRenderer, newObj->GetFilePath());
                     savedObjects.push_back(newObj);
                 }
@@ -171,7 +177,10 @@ namespace EngineManager {
                 }
                 objectsToLoad.clear(); //This delete's the pointers
                 for (GameObject* gObj : savedObjects) {
-                    GameObject* newObj = new GameObject(currRenderer, gObj->position, gObj->width, gObj->height, gObj->GetFilePath());
+                    b2BodyDef newBody;
+                    newBody.position.Set(gObj->objBody.position.x, gObj->objBody.position.y);
+                    newBody.type = gObj->objBody.type;
+                    GameObject* newObj = new GameObject(currRenderer, newBody, gObj->width, gObj->height, gObj->GetFilePath());
                     newObj->SetTextureFromeFile(currRenderer, newObj->GetFilePath());
                     objectsToLoad.push_back(newObj);
                     delete gObj;
@@ -187,13 +196,14 @@ namespace EngineManager {
     void SelectObject(GameObject* clickedObj) {
         selectedObject = clickedObj;
     }
-    GameObject* FindSelectedObject(ImVec2 clickedPos) {
+    GameObject* FindSelectedObject(b2Vec2 clickedPos) {
+        clickedPos += cameraPos;
         for (GameObject* gObj : objectsToLoad) {
             //find if the clicked position is on the object's rectangle
-            float leftLimit = gObj->position.x - (gObj->width / 2) + cameraPos.x;
-            float rightLimit = gObj->position.x + (gObj->width / 2) + cameraPos.x;
-            float upLimit = gObj->position.y - (gObj->height / 2) + cameraPos.y;
-            float downLimit = gObj->position.y + (gObj->height / 2) + cameraPos.y;
+            float leftLimit = gObj->objBody.position.x - (gObj->width / 2);
+            float rightLimit = gObj->objBody.position.x + (gObj->width / 2);
+            float upLimit = gObj->objBody.position.y - (gObj->height / 2);
+            float downLimit = gObj->objBody.position.y + (gObj->height / 2);
             if (clickedPos.x < rightLimit && 
             clickedPos.x > leftLimit &&
             clickedPos.y < downLimit &&
@@ -208,18 +218,19 @@ namespace EngineManager {
     void AddToViewPort(GameObject* gameObject) {
         objectsToLoad.push_back(gameObject);
     }
-    void AddToViewPort(ImVec2 targetPos, float targetWidth, float targetHeight, std::string textureFile) {
+    void AddToViewPort(b2Vec2 targetPos, float targetWidth, float targetHeight, std::string textureFile) {
         GameObject* newObj = nullptr;
-        targetPos.x = targetPos.x - cameraPos.x;
-        targetPos.y = targetPos.y - cameraPos.y;
+        b2BodyDef newBody;
+        newBody.position.Set(targetPos.x + cameraPos.x, targetPos.y + cameraPos.y);
+        newBody.type = b2_staticBody;
         if (textureFile.empty()) {
             if (brush->getTextureFile().empty()) {
                 SDL_Log("No brush texture was chosen!");
                 return;
             }
-            newObj = new GameObject(currRenderer, targetPos, targetWidth, targetHeight, brush->getTextureFile());
+            newObj = new GameObject(currRenderer, newBody, targetWidth, targetHeight, brush->getTextureFile());
         } else {
-            newObj = new GameObject(currRenderer, targetPos, targetWidth, targetHeight, textureFile);
+            newObj = new GameObject(currRenderer, newBody, targetWidth, targetHeight, textureFile);
         }
         objectsToLoad.push_back(newObj);
     }
@@ -228,10 +239,10 @@ namespace EngineManager {
         //go over every object, make a rectangle, and apply the texture
         for (GameObject* gObj : objectsToLoad) {
             SDL_FRect texture_rect;
-            texture_rect.x = gObj->position.x - (gObj->width / 2) + cameraPos.x; //subtracting half width/height makes the image centered on the mouse
-            texture_rect.y = gObj->position.y - (gObj->height / 2) + cameraPos.y;
-            texture_rect.w = gObj->width;
-            texture_rect.h = gObj->height;
+            texture_rect.x = MeterToPixel(gObj->objBody.position.x - (gObj->width / 2) - cameraPos.x);
+            texture_rect.y = MeterToPixel(gObj->objBody.position.y - (gObj->height / 2) - cameraPos.y);
+            texture_rect.w = MeterToPixel(gObj->width);
+            texture_rect.h = MeterToPixel(gObj->height);
             SDL_RenderTexture(currRenderer, gObj->GetTexturePtr(), NULL, &texture_rect);
         }
     }
@@ -245,10 +256,10 @@ namespace EngineManager {
     }
 
     //Controlling the Camera offset
-    ImVec2 GetCameraPosition() {
+    b2Vec2 GetCameraPosition() {
         return cameraPos;
     }
-    void SetCameraPosition(ImVec2 newPos) {
+    void SetCameraPosition(b2Vec2 newPos) {
         cameraPos = newPos;
     }
 
@@ -259,6 +270,11 @@ namespace EngineManager {
     void SetPhyWorld(b2World* world) {
         phyWorld = world;
     }
+
+    float MeterToPixel(float meters) { return (meters * 50); }
+    float PixToMeter(float pixels) { return (pixels * 0.02f); }
+    b2Vec2 VectorMeterToPixel(b2Vec2 meterVec) { return b2Vec2(meterVec.x * 50, meterVec.y * 50); }
+    b2Vec2 VectorPixelToMeter(b2Vec2 pixelVec) { return b2Vec2(pixelVec.x * 0.02f, pixelVec.y * 0.02f); }
 
     //These are all the functions that handle saving and loading files in/out of the engine
     bool LoadFile(std::string path) {
@@ -272,18 +288,16 @@ namespace EngineManager {
         objectsToLoad.clear();
         //then, read new gameObjects from the file
         while (std::getline(srcFile, input)) {
-            std::cout << input << std::endl;
             size_t lineIndex = 0;
             std::string gObjPiece = "";
             std::vector<std::string> gObjPieces = std::vector<std::string>();
             while ((lineIndex = input.find(':')) != std::string::npos) {
                 gObjPiece = input.substr(0, input.find(':'));
-                std::cout << gObjPiece << std::endl;
                 gObjPieces.push_back(gObjPiece);
                 input.erase(0, lineIndex + 1);
             }
             //this assumes that the last item of the saved gameobj is always the texture path
-            AddToViewPort(ImVec2(std::stof(gObjPieces[0]), std::stof(gObjPieces[1])), std::stof(gObjPieces[6]), std::stof(gObjPieces[7]), input);
+            AddToViewPort(b2Vec2(std::stof(gObjPieces[0]), std::stof(gObjPieces[1])), std::stof(gObjPieces[6]), std::stof(gObjPieces[7]), input);
         }
         srcFile.close();
         return true;
@@ -293,8 +307,8 @@ namespace EngineManager {
         std::ofstream dstFile(path, std::ofstream::trunc);
         std::string newLine = "";
         for (GameObject* gObj : objectsToLoad) {
-            newLine += std::to_string(gObj->position.x) + ":";
-            newLine += std::to_string(gObj->position.y) + ":";
+            newLine += std::to_string(gObj->objBody.position.x) + ":";
+            newLine += std::to_string(gObj->objBody.position.y) + ":";
             newLine += std::to_string(gObj->color.r) + ":";
             newLine += std::to_string(gObj->color.g) + ":";
             newLine += std::to_string(gObj->color.b) + ":";

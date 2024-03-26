@@ -21,13 +21,13 @@ namespace EngineManager {
 
     //functions for adding/drawing objects
     void AddToViewPort(GameObject* gameObject);
-    void AddToViewPort(ImVec2 targetPos, float targetWidth, float targetHeight, std::string textureFile="");
+    void AddToViewPort(b2Vec2 targetPos, float targetWidth, float targetHeight, std::string textureFile="");
     //at some point switch to using Render_Geometry? (https://wiki.libsdl.org/SDL3/SDL_RenderGeometry) for custom polygons
     void DrawViewPort();
 
     //functions for selecting items
     void SelectObject(GameObject* clickedObj);
-    GameObject* FindSelectedObject(ImVec2 clickedPos);
+    GameObject* FindSelectedObject(b2Vec2 clickedPos);
 
     //Runs the Update Loop on gameObjects when playing
     void UpdateGameObjects();
@@ -39,10 +39,16 @@ namespace EngineManager {
     std::string CreateSaveDialogBox();
 
     //Controlling the Camera offset
-    ImVec2 GetCameraPosition();
-    void SetCameraPosition(ImVec2 newPos);
+    b2Vec2 GetCameraPosition();
+    void SetCameraPosition(b2Vec2 newPos);
 
     //these are used for physics world creation in main.cpp
     b2Vec2 GetGravityVector();
     void SetPhyWorld(b2World* world);
+
+    //Used to convert the pixel space of the viewport to meter space of the physics engine
+    float MeterToPixel(float meters);
+    float PixToMeter(float pixels);
+    b2Vec2 VectorMeterToPixel(b2Vec2 meterVec);
+    b2Vec2 VectorPixelToMeter(b2Vec2 pixelVec);
 };

@@ -5,8 +5,8 @@
 #include "box2d/box2d.h"
 #include <iostream>
 
-GameObject::GameObject(SDL_Renderer* renderer, ImVec2 targetPos, float targetWidth, float targetHeight, std::string textureFile) {
-    position = targetPos;
+GameObject::GameObject(SDL_Renderer* renderer, b2BodyDef targetBody, float targetWidth, float targetHeight, std::string textureFile) {
+    objBody = targetBody;
     width = targetWidth;
     height = targetHeight;
     SetTextureFromeFile(renderer, textureFile);

@@ -6,6 +6,8 @@
 #include "box2d/box2d.h"
 
 #include "EngineManager.h"
+#include <iostream>
+#include <string>
 
 // Main code
 int main(int argc, char* argv[])
@@ -29,8 +31,8 @@ int main(int argc, char* argv[])
     //init Engine
     EngineManager::InitEngine(mainRenderer);
     //create and set the physics world for the engine manager
-    b2World phyWorld(EngineManager::GetGravityVector());
-    EngineManager::SetPhyWorld(&phyWorld);
+    //b2World phyWorld(EngineManager::GetGravityVector());
+    //EngineManager::SetPhyWorld(&phyWorld);
 
     bool done = false;
     bool mouseMiddleDown = false; //This is for knowing when to move the camera
@@ -69,12 +71,14 @@ int main(int argc, char* argv[])
             
             //handles paint objects with the brush
             else if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN && event.button.button == SDL_BUTTON_LEFT) {
-                EngineManager::AddToViewPort(ImVec2(event.button.x, event.button.y), 50.0f, 50.0f);
+                b2Vec2 posInMeters = EngineManager::VectorPixelToMeter(b2Vec2(event.button.x, event.button.y));
+                EngineManager::AddToViewPort(posInMeters, 1.0f, 1.0f);
             }
             
             //handles selecting an object
             else if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN && event.button.button == SDL_BUTTON_RIGHT) {
-                EngineManager::SelectObject(EngineManager::FindSelectedObject(ImVec2(event.button.x, event.button.y)));
+                b2Vec2 posInMeters = EngineManager::VectorPixelToMeter(b2Vec2(event.button.x, event.button.y));
+                EngineManager::SelectObject(EngineManager::FindSelectedObject(posInMeters));
             }
 
             //handles moving the camera and zooming the camera
@@ -83,9 +87,9 @@ int main(int argc, char* argv[])
             } else if (event.type == SDL_EVENT_MOUSE_BUTTON_UP && event.button.button == SDL_BUTTON_MIDDLE) {
                 mouseMiddleDown = false;
             } else if (mouseMiddleDown && event.type == SDL_EVENT_MOUSE_MOTION) {
-                ImVec2 newCamPos = EngineManager::GetCameraPosition();
-                newCamPos.x += event.motion.xrel;
-                newCamPos.y += event.motion.yrel;
+                b2Vec2 newCamPos = EngineManager::GetCameraPosition();
+                newCamPos.x -= EngineManager::PixToMeter(event.motion.xrel);
+                newCamPos.y -= EngineManager::PixToMeter(event.motion.yrel);
                 EngineManager::SetCameraPosition(newCamPos);
             }
 

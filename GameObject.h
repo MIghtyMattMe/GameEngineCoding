@@ -8,12 +8,12 @@
 
 class GameObject {
     public:
-        GameObject(SDL_Renderer* renderer, ImVec2 targetPos, float targetWidth, float targetHeight, std::string textureFile);
+        GameObject(SDL_Renderer* renderer, b2BodyDef targetBody, float targetWidth, float targetHeight, std::string textureFile);
         ~GameObject();
 
         //variables of a gameobject
         b2BodyDef objBody;
-        ImVec2 position;
+        //b2FixtureDef objFixture;
         SDL_Color color;
         float width;
         float height;
@@ -30,8 +30,8 @@ class GameObject {
 
         //operator overrides for checking this data structure
         bool operator==(GameObject other) {
-            if (position.x != other.position.x) return false;
-            if (position.y != other.position.y) return false;
+            if (objBody.position.x != other.objBody.position.x) return false;
+            if (objBody.position.y != other.objBody.position.y) return false;
             if (width != other.width) return false;
             if (height != other.height) return false;
             if (color.r != other.color.r) return false;
