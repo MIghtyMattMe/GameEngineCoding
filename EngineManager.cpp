@@ -179,9 +179,45 @@ namespace EngineManager {
                         boxFixtureDef.friction = 0.3f;
                         gObj->objBody->CreateFixture(&boxFixtureDef);
                     } else if (gObj->objShape == GameObject::ecllips) {
-                        //
+                        const int STEPS = 32;
+                        float a = (gObj->width >= gObj->height) ? gObj->width / 2 : gObj->height / 2;
+                        float b = (gObj->width >= gObj->height) ? gObj->height / 2 : gObj->width / 2;
+                        b2Vec2 verts[STEPS];
+                        for (int i = 0; i < STEPS; i++) {
+                            float t = (float) (i * 2 * b2_pi) / STEPS;
+                            verts[i] = b2Vec2((gObj->width / 2) * cosf(t), (gObj->height / 2) * sinf(t));
+                        }
+                        gObj->objBody = phyWorld->CreateBody(&gObj->objBodyDef);
+
+                        //circle made for normal collisions
+                        b2CircleShape cir;
+                        cir.m_radius = b;
+                        b2FixtureDef FixtureDef;
+                        FixtureDef.shape = &cir;
+                        FixtureDef.density = 1.0f;
+                        gObj->objBody->CreateFixture(&FixtureDef);
+
+                        //chain made for ellipse collisions
+                        b2ChainShape chainShape;
+                        chainShape.CreateLoop(verts, STEPS);
+                        b2FixtureDef triFixtureDef;
+                        triFixtureDef.shape = &chainShape;
+                        triFixtureDef.density = 1.0f;
+                        gObj->objBody->CreateFixture(&triFixtureDef);
                     } else if (gObj->objShape == GameObject::polygon) {
-                        //
+                        b2Vec2 points[3] = {b2Vec2(0, -0.5f), b2Vec2(0.5f, 0.5f), b2Vec2(-0.5f, 0.5f)};
+                        for (int i = 0; i < 3; i++) {
+                            points[i].x *= gObj->width;
+                            points[i].y *= gObj->height;
+                        }
+                        gObj->objBody = phyWorld->CreateBody(&gObj->objBodyDef);
+                        b2PolygonShape polygon;
+                        polygon.Set(points, 3);
+                        b2FixtureDef polygonFixtureDef;
+                        polygonFixtureDef.shape = &polygon;
+                        polygonFixtureDef.density = 1.0f;
+                        polygonFixtureDef.friction = 0.3f;
+                        gObj->objBody->CreateFixture(&polygonFixtureDef);
                     }
                 }
             }
@@ -222,10 +258,10 @@ namespace EngineManager {
         clickedPos += cameraPos;
         for (GameObject* gObj : objectsToLoad) {
             //find if the clicked position is on the object's rectangle
-            float leftLimit = gObj->objBodyDef.position.x - (gObj->width / 2);
-            float rightLimit = gObj->objBodyDef.position.x + (gObj->width / 2);
-            float upLimit = gObj->objBodyDef.position.y - (gObj->height / 2);
-            float downLimit = gObj->objBodyDef.position.y + (gObj->height / 2);
+            float leftLimit = (playing) ? gObj->objBody->GetPosition().x - (gObj->width / 2) : gObj->objBodyDef.position.x - (gObj->width / 2);
+            float rightLimit = (playing) ? gObj->objBody->GetPosition().x + (gObj->width / 2) : gObj->objBodyDef.position.x + (gObj->width / 2);
+            float upLimit = (playing) ? gObj->objBody->GetPosition().y - (gObj->height / 2) : gObj->objBodyDef.position.y - (gObj->height / 2);
+            float downLimit = (playing) ? gObj->objBody->GetPosition().y + (gObj->height / 2) : gObj->objBodyDef.position.y + (gObj->height / 2);
             if (clickedPos.x < rightLimit && 
             clickedPos.x > leftLimit &&
             clickedPos.y < downLimit &&
@@ -262,10 +298,14 @@ namespace EngineManager {
         for (GameObject* gObj : objectsToLoad) {
             SDL_FRect texture_rect;
             texture_rect.x = (playing) ? MeterToPixel(gObj->objBody->GetPosition().x - (gObj->width / 2) - cameraPos.x) : MeterToPixel(gObj->objBodyDef.position.x - (gObj->width / 2) - cameraPos.x);
-            texture_rect.y = (playing) ? MeterToPixel(gObj->objBody->GetPosition().y - (gObj->height / 2) - cameraPos.x) : MeterToPixel(gObj->objBodyDef.position.y - (gObj->height / 2) - cameraPos.x);
+            texture_rect.y = (playing) ? MeterToPixel(gObj->objBody->GetPosition().y - (gObj->height / 2) - cameraPos.y) : MeterToPixel(gObj->objBodyDef.position.y - (gObj->height / 2) - cameraPos.y);
             texture_rect.w = MeterToPixel(gObj->width);
             texture_rect.h = MeterToPixel(gObj->height);
-            SDL_RenderTexture(currRenderer, gObj->GetTexturePtr(), NULL, &texture_rect);
+            float rotation = (playing) ? gObj->objBody->GetAngle() : gObj->objBodyDef.angle;
+            rotation *= (180 /b2_pi);
+            //std::cout << std::to_string(rotation) << std::endl;
+            SDL_FPoint center = SDL_FPoint(0, 0);
+            SDL_RenderTextureRotated(currRenderer, gObj->GetTexturePtr(), NULL, &texture_rect, rotation, NULL, SDL_FlipMode::SDL_FLIP_NONE);
         }
     }
 
