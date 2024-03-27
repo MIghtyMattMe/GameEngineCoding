@@ -8,12 +8,14 @@
 
 class GameObject {
     public:
-        GameObject(SDL_Renderer* renderer, b2BodyDef targetBody, float targetWidth, float targetHeight, std::string textureFile);
+        GameObject(SDL_Renderer* renderer, b2BodyDef targetBody, int shape, float targetWidth, float targetHeight, std::string textureFile);
         ~GameObject();
 
         //variables of a gameobject
         b2BodyDef objBodyDef;
         b2Body* objBody = nullptr;
+        enum Shape {None = 0, ecllips = 1, box = 2, polygon = 3};
+        Shape objShape = None;
         SDL_Color color;
         float width;
         float height;

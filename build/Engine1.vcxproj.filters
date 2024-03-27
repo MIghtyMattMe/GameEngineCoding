@@ -39,9 +39,17 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="D:\GameEngineCoding\Inspector.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
     <CustomBuild Include="D:\GameEngineCoding\CMakeLists.txt" />
   </ItemGroup>
   <ItemGroup>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{E846DF64-EC14-3607-90C0-0D20D99B2565}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Source Files">
       <UniqueIdentifier>{ABD0E149-01DC-39D3-819F-17D7BF45A068}</UniqueIdentifier>
     </Filter>

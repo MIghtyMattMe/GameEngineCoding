@@ -8,6 +8,7 @@
 #include "EngineManager.h"
 #include <iostream>
 #include <string>
+//#include <sysinfoapi.h>
 
 // Main code
 int main(int argc, char* argv[])
@@ -31,16 +32,34 @@ int main(int argc, char* argv[])
     //init Engine
     EngineManager::InitEngine(mainRenderer);
     //create and set the physics world for the engine manager
-    //b2World phyWorld(EngineManager::GetGravityVector());
-    //EngineManager::SetPhyWorld(&phyWorld);
+    b2World phyWorld(EngineManager::GetGravityVector());
+    EngineManager::SetPhyWorld(&phyWorld);
 
     bool done = false;
     bool mouseMiddleDown = false; //This is for knowing when to move the camera
     ImGuiIO& imguiIO = ImGui::GetIO(); //imguiIO handles the input and output signals for imGui
+    //SYSTEMTIME sysTime;
+    //GetSystemTime(&sysTime);
+    //int totalTime = 0;
+    //int currTime;
+    //int lastTime = sysTime.wMilliseconds;
+    //float timeStep = 1.0f / 60.0f;
 
     //This is our main rendering loop that gets called "every frame"
     while (!done)
     {
+        //update physics world
+        /*
+        GetSystemTime(&sysTime);
+        currTime = sysTime.wMilliseconds;
+        totalTime += ((currTime - lastTime) > 0) ? (currTime - lastTime) : (currTime - lastTime + 999);
+        lastTime = currTime;
+        if (totalTime >= 20) {
+            phyWorld.Step(timeStep, 6, 2);
+            totalTime = 0;
+        }
+        */
+
         EngineManager::UpdateGameObjects();
 
         ImGui_ImplSDLRenderer3_NewFrame();

@@ -5,10 +5,11 @@
 #include "box2d/box2d.h"
 #include <iostream>
 
-GameObject::GameObject(SDL_Renderer* renderer, b2BodyDef targetBody, float targetWidth, float targetHeight, std::string textureFile) {
+GameObject::GameObject(SDL_Renderer* renderer, b2BodyDef targetBody, int shape, float targetWidth, float targetHeight, std::string textureFile) {
     objBodyDef = targetBody;
     width = targetWidth;
     height = targetHeight;
+    objShape = (Shape) shape;
     SetTextureFromeFile(renderer, textureFile);
 }
 GameObject::~GameObject() {

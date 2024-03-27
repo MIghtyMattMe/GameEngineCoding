@@ -2,6 +2,7 @@
 #include "EngineManager.h"
 #include "Brush.h"
 #include "GameObject.h"
+#include "Inspector.h"
 
 //SDL and ImGui database
 #include "imgui/imgui.h"
@@ -32,7 +33,7 @@ namespace EngineManager {
     GameObject* selectedObject = nullptr;
 
     //physics variables and world
-    b2Vec2 gravity = b2Vec2(0.0f, -10.0f);
+    b2Vec2 gravity = b2Vec2(0.0f, 10.0f);
     b2World* phyWorld;
 
     //gets the renderer, so fuctions do not have to constantly ask for it
@@ -99,6 +100,10 @@ namespace EngineManager {
             ImGui::SliderFloat("Width", &selectedObject->width, 0.1f, 30);
             ImGui::SliderFloat("Height", &selectedObject->height, 0.1f, 30);
             selectedObject->objBodyDef.position.Set(xPos, yPos);
+
+            Inspector::BuildPhysicsBodySelector(selectedObject);
+            Inspector::BuildShapeSelector(selectedObject);
+
             if (ImGui::Button("Delete")) {
                 for (size_t i = 0; i < objectsToLoad.size(); i++) {
                     if (*objectsToLoad[i] == *selectedObject) {
@@ -160,9 +165,24 @@ namespace EngineManager {
                     b2BodyDef newBody;
                     newBody.position.Set(gObj->objBodyDef.position.x, gObj->objBodyDef.position.y);
                     newBody.type = gObj->objBodyDef.type;
-                    GameObject* newObj = new GameObject(currRenderer, newBody, gObj->width, gObj->height, gObj->GetFilePath());
+                    GameObject* newObj = new GameObject(currRenderer, newBody, gObj->objShape, gObj->width, gObj->height, gObj->GetFilePath());
                     newObj->SetTextureFromeFile(currRenderer, newObj->GetFilePath());
                     savedObjects.push_back(newObj);
+
+                    if (gObj->objShape == GameObject::box) {
+                        gObj->objBody = phyWorld->CreateBody(&gObj->objBodyDef);
+                        b2PolygonShape box;
+                        box.SetAsBox(gObj->width / 2, gObj->height / 2);
+                        b2FixtureDef boxFixtureDef;
+                        boxFixtureDef.shape = &box;
+                        boxFixtureDef.density = 1.0f;
+                        boxFixtureDef.friction = 0.3f;
+                        gObj->objBody->CreateFixture(&boxFixtureDef);
+                    } else if (gObj->objShape == GameObject::ecllips) {
+                        //
+                    } else if (gObj->objShape == GameObject::polygon) {
+                        //
+                    }
                 }
             }
             playing = true;
@@ -182,7 +202,7 @@ namespace EngineManager {
                     b2BodyDef newBody;
                     newBody.position.Set(gObj->objBodyDef.position.x, gObj->objBodyDef.position.y);
                     newBody.type = gObj->objBodyDef.type;
-                    GameObject* newObj = new GameObject(currRenderer, newBody, gObj->width, gObj->height, gObj->GetFilePath());
+                    GameObject* newObj = new GameObject(currRenderer, newBody, gObj->objShape, gObj->width, gObj->height, gObj->GetFilePath());
                     newObj->SetTextureFromeFile(currRenderer, newObj->GetFilePath());
                     objectsToLoad.push_back(newObj);
                     delete gObj;
@@ -230,9 +250,9 @@ namespace EngineManager {
                 SDL_Log("No brush texture was chosen!");
                 return;
             }
-            newObj = new GameObject(currRenderer, newBody, targetWidth, targetHeight, brush->getTextureFile());
+            newObj = new GameObject(currRenderer, newBody, brush->getType(), targetWidth, targetHeight, brush->getTextureFile());
         } else {
-            newObj = new GameObject(currRenderer, newBody, targetWidth, targetHeight, textureFile);
+            newObj = new GameObject(currRenderer, newBody, 0, targetWidth, targetHeight, textureFile);
         }
         objectsToLoad.push_back(newObj);
     }
@@ -241,8 +261,8 @@ namespace EngineManager {
         //go over every object, make a rectangle, and apply the texture
         for (GameObject* gObj : objectsToLoad) {
             SDL_FRect texture_rect;
-            texture_rect.x = MeterToPixel(gObj->objBodyDef.position.x - (gObj->width / 2) - cameraPos.x);
-            texture_rect.y = MeterToPixel(gObj->objBodyDef.position.y - (gObj->height / 2) - cameraPos.y);
+            texture_rect.x = (playing) ? MeterToPixel(gObj->objBody->GetPosition().x - (gObj->width / 2) - cameraPos.x) : MeterToPixel(gObj->objBodyDef.position.x - (gObj->width / 2) - cameraPos.x);
+            texture_rect.y = (playing) ? MeterToPixel(gObj->objBody->GetPosition().y - (gObj->height / 2) - cameraPos.x) : MeterToPixel(gObj->objBodyDef.position.y - (gObj->height / 2) - cameraPos.x);
             texture_rect.w = MeterToPixel(gObj->width);
             texture_rect.h = MeterToPixel(gObj->height);
             SDL_RenderTexture(currRenderer, gObj->GetTexturePtr(), NULL, &texture_rect);
@@ -252,6 +272,8 @@ namespace EngineManager {
     //Runs the Update Loop on gameObjects when playing
     void UpdateGameObjects() {
         if (!playing) return;
+        float timeStep = 1.0f / 300.0f;
+        phyWorld->Step(timeStep, 6, 2);
         for (GameObject* gObj : objectsToLoad) {
             gObj->Update();
         }

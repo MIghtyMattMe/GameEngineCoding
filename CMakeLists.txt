@@ -18,6 +18,7 @@ add_executable(Engine1    imgui/imgui_demo.cpp
                           imgui/imgui_impl_sdl3.cpp
                           imgui/imgui_impl_sdlrenderer3.cpp
                           imgui/imgui_impl_win32.cpp
+                          Inspector.h
                           Brush.cpp
                           GameObject.cpp
                           EngineManager.cpp
