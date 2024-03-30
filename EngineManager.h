@@ -5,7 +5,11 @@
 #include "box2d/box2d.h"
 #include "GameObject.h"
 #include <vector>
-#include <string>
+
+//these are used for debugging and saving/loading files
+#include <iostream>
+#include <fstream>
+#include <ShObjIdl_core.h>
 
 namespace EngineManager {
 
@@ -31,6 +35,7 @@ namespace EngineManager {
 
     //Runs the Update Loop on gameObjects when playing
     void UpdateGameObjects();
+    void ReadPlayInput(SDL_Event event);
 
     //Saves and Loads the project from a file
     bool LoadFile(std::string path);

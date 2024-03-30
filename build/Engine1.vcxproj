@@ -329,11 +329,13 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClCompile Include="D:\GameEngineCoding\imgui\imgui_impl_sdl3.cpp" />
     <ClCompile Include="D:\GameEngineCoding\imgui\imgui_impl_sdlrenderer3.cpp" />
     <ClCompile Include="D:\GameEngineCoding\imgui\imgui_impl_win32.cpp" />
-    <ClInclude Include="D:\GameEngineCoding\Inspector.h" />
     <ClCompile Include="D:\GameEngineCoding\Brush.cpp" />
     <ClCompile Include="D:\GameEngineCoding\GameObject.cpp" />
     <ClCompile Include="D:\GameEngineCoding\EngineManager.cpp" />
     <ClCompile Include="D:\GameEngineCoding\main.cpp" />
+    <ClCompile Include="D:\GameEngineCoding\UpdateFunctions\Default.cpp" />
+    <ClInclude Include="D:\GameEngineCoding\UpdateFunctions\KeyData.h" />
+    <ClInclude Include="D:\GameEngineCoding\Inspector.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="D:\GameEngineCoding\build\ZERO_CHECK.vcxproj">

@@ -1,25 +1,10 @@
-//Custom scritps
 #include "EngineManager.h"
 #include "Brush.h"
-#include "GameObject.h"
 #include "Inspector.h"
 
-//SDL and ImGui database
-#include "imgui/imgui.h"
-#include "SDL3/SDL.h"
-#include "SDL3/SDL_image.h"
-
-//Box2D is the physics library
-#include "box2d/box2d.h"
-
-//used for getting files from the user
-#include <ShObjIdl_core.h>
-
-//these are used for debugging and saving/loading files
-#include <iostream>
-#include <fstream>
-#include <string>
-#include <algorithm>
+std::vector<SDL_Scancode> KeyData::playModeInput = std::vector<SDL_Scancode>();
+Uint64 KeyData::keysPressed = 0;
+Uint64 KeyData::lastFrameKeys = 0;
 
 namespace EngineManager {
     //Misc engine parts that we use
@@ -84,6 +69,13 @@ namespace EngineManager {
         if (ImGui::Button("Triangle")) {
             brush->setType(Brush::Type::Triangle);
         }
+        ImGui::SameLine();
+        if (ImGui::Button("Custom")) {
+            brush->setType(Brush::Type::Custom);
+        }
+        if (ImGui::Button("Player")) {
+            brush->setType(Brush::Type::Player);
+        }
         ImGui::End();
     }
     //creates the inspector window and sets up its logic
@@ -92,31 +84,25 @@ namespace EngineManager {
         ImGui::Begin("Object Inspector");
         ImGui::PopStyleColor();
         if (selectedObject != nullptr) {
-            //display data
-            float xPos = selectedObject->objBodyDef.position.x;
-            float yPos = selectedObject->objBodyDef.position.y;
-            ImGui::SliderFloat("X Pos", &xPos, 0, 50);
-            ImGui::SliderFloat("Y Pos", &yPos, 0, 20);
-            ImGui::SliderFloat("Width", &selectedObject->width, 0.1f, 30);
-            ImGui::SliderFloat("Height", &selectedObject->height, 0.1f, 30);
-            selectedObject->objBodyDef.position.Set(xPos, yPos);
-
-            Inspector::BuildPhysicsBodySelector(selectedObject);
-            Inspector::BuildShapeSelector(selectedObject);
-
-            if (ImGui::Button("Delete")) {
-                for (size_t i = 0; i < objectsToLoad.size(); i++) {
-                    if (*objectsToLoad[i] == *selectedObject) {
-                        objectsToLoad.erase(objectsToLoad.begin() + i);
-                        delete selectedObject;
-                        selectedObject = NULL;
-                        break;
+            //display data if we are playing, but if not, data is editable
+            if (playing) {
+                Inspector::BuildPlayModeInspector(selectedObject);
+            } else {
+                Inspector::BuildNormalInspector(selectedObject);
+                if (ImGui::Button("Delete")) {
+                    for (size_t i = 0; i < objectsToLoad.size(); i++) {
+                        if (*objectsToLoad[i] == *selectedObject) {
+                            objectsToLoad.erase(objectsToLoad.begin() + i);
+                            delete selectedObject;
+                            selectedObject = NULL;
+                            break;
+                        }
                     }
                 }
             }
         } else {
             ImGui::Text("No selected object!");
-            ImGui::Text("Right-Click on an object to select it.");
+            ImGui::Text("Right-Click on an object.");
         }
         ImGui::End();
     }
@@ -128,10 +114,8 @@ namespace EngineManager {
 
         //Handles loading and saving the game engine
         if (ImGui::Button("Save") && !playing) {
-            SDL_Log("Save dialog");
             std::string savePath = CreateSaveDialogBox();
             if (!savePath.empty()) {
-                SDL_Log("Save file");
                 if (!SaveFile(savePath)) {
                     SDL_Log("Failed to Save");
                 }
@@ -162,63 +146,8 @@ namespace EngineManager {
             if (!playing) {
                 playJustHit = true;
                 for (GameObject* gObj : objectsToLoad) {
-                    b2BodyDef newBody;
-                    newBody.position.Set(gObj->objBodyDef.position.x, gObj->objBodyDef.position.y);
-                    newBody.type = gObj->objBodyDef.type;
-                    GameObject* newObj = new GameObject(currRenderer, newBody, gObj->objShape, gObj->width, gObj->height, gObj->GetFilePath());
-                    newObj->SetTextureFromeFile(currRenderer, newObj->GetFilePath());
-                    savedObjects.push_back(newObj);
-
-                    if (gObj->objShape == GameObject::box) {
-                        gObj->objBody = phyWorld->CreateBody(&gObj->objBodyDef);
-                        b2PolygonShape box;
-                        box.SetAsBox(gObj->width / 2, gObj->height / 2);
-                        b2FixtureDef boxFixtureDef;
-                        boxFixtureDef.shape = &box;
-                        boxFixtureDef.density = 1.0f;
-                        boxFixtureDef.friction = 0.3f;
-                        gObj->objBody->CreateFixture(&boxFixtureDef);
-                    } else if (gObj->objShape == GameObject::ecllips) {
-                        const int STEPS = 32;
-                        float a = (gObj->width >= gObj->height) ? gObj->width / 2 : gObj->height / 2;
-                        float b = (gObj->width >= gObj->height) ? gObj->height / 2 : gObj->width / 2;
-                        b2Vec2 verts[STEPS];
-                        for (int i = 0; i < STEPS; i++) {
-                            float t = (float) (i * 2 * b2_pi) / STEPS;
-                            verts[i] = b2Vec2((gObj->width / 2) * cosf(t), (gObj->height / 2) * sinf(t));
-                        }
-                        gObj->objBody = phyWorld->CreateBody(&gObj->objBodyDef);
-
-                        //circle made for normal collisions
-                        b2CircleShape cir;
-                        cir.m_radius = b;
-                        b2FixtureDef FixtureDef;
-                        FixtureDef.shape = &cir;
-                        FixtureDef.density = 1.0f;
-                        gObj->objBody->CreateFixture(&FixtureDef);
-
-                        //chain made for ellipse collisions
-                        b2ChainShape chainShape;
-                        chainShape.CreateLoop(verts, STEPS);
-                        b2FixtureDef triFixtureDef;
-                        triFixtureDef.shape = &chainShape;
-                        triFixtureDef.density = 1.0f;
-                        gObj->objBody->CreateFixture(&triFixtureDef);
-                    } else if (gObj->objShape == GameObject::polygon) {
-                        b2Vec2 points[3] = {b2Vec2(0, -0.5f), b2Vec2(0.5f, 0.5f), b2Vec2(-0.5f, 0.5f)};
-                        for (int i = 0; i < 3; i++) {
-                            points[i].x *= gObj->width;
-                            points[i].y *= gObj->height;
-                        }
-                        gObj->objBody = phyWorld->CreateBody(&gObj->objBodyDef);
-                        b2PolygonShape polygon;
-                        polygon.Set(points, 3);
-                        b2FixtureDef polygonFixtureDef;
-                        polygonFixtureDef.shape = &polygon;
-                        polygonFixtureDef.density = 1.0f;
-                        polygonFixtureDef.friction = 0.3f;
-                        gObj->objBody->CreateFixture(&polygonFixtureDef);
-                    }
+                    savedObjects.push_back(gObj->Clone(currRenderer));
+                    gObj->CreateAndPlaceBody(phyWorld);
                 }
             }
             playing = true;
@@ -235,12 +164,7 @@ namespace EngineManager {
                 }
                 objectsToLoad.clear(); //This delete's the pointers
                 for (GameObject* gObj : savedObjects) {
-                    b2BodyDef newBody;
-                    newBody.position.Set(gObj->objBodyDef.position.x, gObj->objBodyDef.position.y);
-                    newBody.type = gObj->objBodyDef.type;
-                    GameObject* newObj = new GameObject(currRenderer, newBody, gObj->objShape, gObj->width, gObj->height, gObj->GetFilePath());
-                    newObj->SetTextureFromeFile(currRenderer, newObj->GetFilePath());
-                    objectsToLoad.push_back(newObj);
+                    objectsToLoad.push_back(gObj->Clone(currRenderer));
                     delete gObj;
                 }
                 savedObjects.clear();
@@ -290,6 +214,9 @@ namespace EngineManager {
         } else {
             newObj = new GameObject(currRenderer, newBody, 0, targetWidth, targetHeight, textureFile);
         }
+        if (playing) {
+            newObj->CreateAndPlaceBody(phyWorld);
+        }
         objectsToLoad.push_back(newObj);
     }
     //handles the actual drawing of textures
@@ -303,8 +230,6 @@ namespace EngineManager {
             texture_rect.h = MeterToPixel(gObj->height);
             float rotation = (playing) ? gObj->objBody->GetAngle() : gObj->objBodyDef.angle;
             rotation *= (180 /b2_pi);
-            //std::cout << std::to_string(rotation) << std::endl;
-            SDL_FPoint center = SDL_FPoint(0, 0);
             SDL_RenderTextureRotated(currRenderer, gObj->GetTexturePtr(), NULL, &texture_rect, rotation, NULL, SDL_FlipMode::SDL_FLIP_NONE);
         }
     }
@@ -315,7 +240,19 @@ namespace EngineManager {
         float timeStep = 1.0f / 300.0f;
         phyWorld->Step(timeStep, 6, 2);
         for (GameObject* gObj : objectsToLoad) {
-            gObj->Update();
+            (gObj->updateFunction)(gObj);
+        }
+    }
+    void ReadPlayInput(SDL_Event event) {
+        if (!playing) return;
+        SDL_Scancode code = event.key.keysym.scancode;
+        if (code < 64) {
+            KeyData::playModeInput.push_back(code);
+            if (event.type == SDL_EVENT_KEY_DOWN) {
+                KeyData::keysPressed |= (1ULL << code);
+            } else if (event.type == SDL_EVENT_KEY_UP) {
+                KeyData::keysPressed ^= (1ULL << code);
+            }
         }
     }
 
@@ -361,7 +298,13 @@ namespace EngineManager {
                 input.erase(0, lineIndex + 1);
             }
             //this assumes that the last item of the saved gameobj is always the texture path
-            AddToViewPort(b2Vec2(std::stof(gObjPieces[0]), std::stof(gObjPieces[1])), std::stof(gObjPieces[6]), std::stof(gObjPieces[7]), input);
+            GameObject* newObj = nullptr;
+            b2BodyDef newBody;
+            newBody.position.Set(std::stof(gObjPieces[0]), std::stof(gObjPieces[1]));
+            newBody.angle = std::stof(gObjPieces[2]);
+            newBody.type = (b2BodyType) std::stoi(gObjPieces[3]);
+            newObj = new GameObject(currRenderer, newBody, (GameObject::Shape) std::stoi(gObjPieces[4]), std::stof(gObjPieces[9]), std::stof(gObjPieces[10]), input);
+            AddToViewPort(newObj);
         }
         srcFile.close();
         return true;
@@ -373,6 +316,9 @@ namespace EngineManager {
         for (GameObject* gObj : objectsToLoad) {
             newLine += std::to_string(gObj->objBodyDef.position.x) + ":";
             newLine += std::to_string(gObj->objBodyDef.position.y) + ":";
+            newLine += std::to_string(gObj->objBodyDef.angle) + ":";
+            newLine += std::to_string(gObj->objBodyDef.type) + ":";
+            newLine += std::to_string(gObj->objShape) + ":";
             newLine += std::to_string(gObj->color.r) + ":";
             newLine += std::to_string(gObj->color.g) + ":";
             newLine += std::to_string(gObj->color.b) + ":";
@@ -380,8 +326,7 @@ namespace EngineManager {
             newLine += std::to_string(gObj->width) + ":";
             newLine += std::to_string(gObj->height) + ":";
             newLine += gObj->GetFilePath();
-            newLine += "\n";
-            dstFile << newLine;
+            dstFile << newLine << std::endl;
             newLine = "";
         }
         dstFile.close();
@@ -403,8 +348,12 @@ namespace EngineManager {
         pFileOpen->GetResult(&pShellItem);
         if (pShellItem != nullptr) {
             pShellItem->GetDisplayName(SIGDN_FILESYSPATH,&ppszName);
-            std::wstring ws(ppszName);
-            std::string filePath(ws.begin(), ws.end());
+            size_t origsize = wcslen(ppszName) + 1;
+            size_t convertedChars = 0;
+            const size_t newsize = origsize * 2;
+            char* nstring = new char[newsize];
+            wcstombs_s(&convertedChars, nstring, newsize, ppszName, _TRUNCATE);
+            std::string filePath(nstring);
             finalPath = filePath;
             pShellItem->Release();
         }
@@ -426,11 +375,12 @@ namespace EngineManager {
         pFileSave->GetResult(&pShellItem);
         if (pShellItem != nullptr) {
             pShellItem->GetDisplayName(SIGDN_FILESYSPATH,&ppszName);
-            std::wstring ws(ppszName);
-            std::string filePath(ws.begin(), ws.end());
-            std::transform(ws.begin(), ws.end(), std::back_inserter(filePath), [] (wchar_t c) {
-                return (char)c;
-            });
+            size_t origsize = wcslen(ppszName) + 1;
+            size_t convertedChars = 0;
+            const size_t newsize = origsize * 2;
+            char* nstring = new char[newsize];
+            wcstombs_s(&convertedChars, nstring, newsize, ppszName, _TRUNCATE);
+            std::string filePath(nstring);
             if (filePath.substr(filePath.length() - 5) != ".smol") filePath += ".smol";
             std::ofstream dstFile(filePath);
             finalPath = filePath;

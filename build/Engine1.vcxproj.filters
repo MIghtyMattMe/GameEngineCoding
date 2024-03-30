@@ -37,8 +37,14 @@
     <ClCompile Include="D:\GameEngineCoding\main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="D:\GameEngineCoding\UpdateFunctions\Default.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="D:\GameEngineCoding\UpdateFunctions\KeyData.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="D:\GameEngineCoding\Inspector.h">
       <Filter>Header Files</Filter>
     </ClInclude>

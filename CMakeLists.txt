@@ -18,11 +18,13 @@ add_executable(Engine1    imgui/imgui_demo.cpp
                           imgui/imgui_impl_sdl3.cpp
                           imgui/imgui_impl_sdlrenderer3.cpp
                           imgui/imgui_impl_win32.cpp
-                          Inspector.h
                           Brush.cpp
                           GameObject.cpp
                           EngineManager.cpp
                           main.cpp
+                          UpdateFunctions/Default.cpp
+                          UpdateFunctions/KeyData.h
+                          Inspector.h
                 )
 
 target_link_libraries(Engine1 ${OPENGL_gl_LIBRARY} ${CMAKE_CURRENT_SOURCE_DIR}/lib/SDL3.lib ${CMAKE_CURRENT_SOURCE_DIR}/lib/SDL3_test.lib ${CMAKE_CURRENT_SOURCE_DIR}/lib/SDL3_image.lib ${CMAKE_CURRENT_SOURCE_DIR}/lib/box2d.lib)

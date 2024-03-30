@@ -8,7 +8,6 @@
 #include "EngineManager.h"
 #include <iostream>
 #include <string>
-//#include <sysinfoapi.h>
 
 // Main code
 int main(int argc, char* argv[])
@@ -38,29 +37,14 @@ int main(int argc, char* argv[])
     bool done = false;
     bool mouseMiddleDown = false; //This is for knowing when to move the camera
     ImGuiIO& imguiIO = ImGui::GetIO(); //imguiIO handles the input and output signals for imGui
-    //SYSTEMTIME sysTime;
-    //GetSystemTime(&sysTime);
-    //int totalTime = 0;
-    //int currTime;
-    //int lastTime = sysTime.wMilliseconds;
-    //float timeStep = 1.0f / 60.0f;
 
     //This is our main rendering loop that gets called "every frame"
     while (!done)
     {
-        //update physics world
-        /*
-        GetSystemTime(&sysTime);
-        currTime = sysTime.wMilliseconds;
-        totalTime += ((currTime - lastTime) > 0) ? (currTime - lastTime) : (currTime - lastTime + 999);
-        lastTime = currTime;
-        if (totalTime >= 20) {
-            phyWorld.Step(timeStep, 6, 2);
-            totalTime = 0;
-        }
-        */
 
         EngineManager::UpdateGameObjects();
+        KeyData::playModeInput.clear();
+        KeyData::lastFrameKeys = KeyData::keysPressed;
 
         ImGui_ImplSDLRenderer3_NewFrame();
         ImGui_ImplSDL3_NewFrame();
@@ -110,6 +94,11 @@ int main(int argc, char* argv[])
                 newCamPos.x -= EngineManager::PixToMeter(event.motion.xrel);
                 newCamPos.y -= EngineManager::PixToMeter(event.motion.yrel);
                 EngineManager::SetCameraPosition(newCamPos);
+            }
+
+            //record input for gameobjects and give it to the Engine
+            if (event.type == SDL_EVENT_KEY_DOWN || event.type == SDL_EVENT_KEY_UP) {
+                EngineManager::ReadPlayInput(event);
             }
 
             ImGui_ImplSDL3_ProcessEvent(&event);

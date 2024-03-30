@@ -3,6 +3,7 @@
 #include "SDL3/SDL.h"
 #include "SDL3/SDL_image.h"
 #include "box2d/box2d.h"
+#include "UpdateFunctions/Default.h"
 #include <vector>
 #include <string>
 
@@ -14,7 +15,7 @@ class GameObject {
         //variables of a gameobject
         b2BodyDef objBodyDef;
         b2Body* objBody = nullptr;
-        enum Shape {None = 0, ecllips = 1, box = 2, polygon = 3};
+        enum Shape {None = 0, Ecllipse = 1, Box = 2, Polygon = 3};
         Shape objShape = None;
         SDL_Color color;
         float width;
@@ -27,8 +28,11 @@ class GameObject {
         std::string GetFilePath() { return textureFilePath; }
         SDL_Texture* GetTexturePtr() { return targetTexture; }
 
-        //Update will be called once per frame and can be overriden by children
-        void virtual Update();
+        //Update will be called once per frame
+        void SetUpdateFunction(void (*functionPointer)(void* gObj)) {
+            updateFunction = functionPointer;
+        }
+        void (*updateFunction)(void* gObj) = nullptr;
 
         //operator overrides for checking this data structure
         bool operator==(GameObject other) {
@@ -43,6 +47,8 @@ class GameObject {
             if (targetTexture != other.targetTexture) return false;
             return true;
         }
+        GameObject* Clone(SDL_Renderer* targetRenderer);
+        void CreateAndPlaceBody(b2World* phyWorld);
     private:
         std::string textureFilePath;
         SDL_Texture* targetTexture;

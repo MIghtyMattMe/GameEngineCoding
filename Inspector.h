@@ -87,4 +87,31 @@ namespace Inspector {
             ImGui::EndCombo();
         }
     }
+
+    void BuildPlayModeInspector(GameObject* selectedObject) {
+        std::string xPos = "X Pos: " + std::to_string(selectedObject->objBody->GetPosition().x);
+        ImGui::Text(xPos.c_str());
+        std::string yPos = "Y Pos: " + std::to_string(selectedObject->objBody->GetPosition().y);
+        ImGui::Text(yPos.c_str());
+        std::string angle = "Angle: " + std::to_string(selectedObject->objBody->GetAngle());
+        ImGui::Text(angle.c_str());
+        std::string width = "Width: " + std::to_string(selectedObject->width);
+        ImGui::Text(width.c_str());
+        std::string height = "Height: " + std::to_string(selectedObject->height);
+        ImGui::Text(height.c_str());
+    }
+
+    void BuildNormalInspector(GameObject* selectedObject) {
+        float xPos = selectedObject->objBodyDef.position.x;
+        float yPos = selectedObject->objBodyDef.position.y;
+        ImGui::SliderFloat("X Pos", &xPos, 0, 50);
+        ImGui::SliderFloat("Y Pos", &yPos, 0, 20);
+        ImGui::SliderFloat("Angle", &selectedObject->objBodyDef.angle, 0, 2 * b2_pi);
+        ImGui::SliderFloat("Width", &selectedObject->width, 0.1f, 20);
+        ImGui::SliderFloat("Height", &selectedObject->height, 0.1f, 20);
+        selectedObject->objBodyDef.position.Set(xPos, yPos);
+        
+        BuildPhysicsBodySelector(selectedObject);
+        BuildShapeSelector(selectedObject);
+    }
 }
