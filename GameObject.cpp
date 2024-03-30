@@ -1,13 +1,15 @@
 #include "GameObject.h"
 #include <iostream>
 
-GameObject::GameObject(SDL_Renderer* renderer, b2BodyDef targetBody, int shape, float targetWidth, float targetHeight, std::string textureFile) {
+GameObject::GameObject(SDL_Renderer* renderer, b2BodyDef targetBody, int shape, float targetWidth, float targetHeight, std::string textureFile, float targetDensity, float targetFriction) {
     objBodyDef = targetBody;
     width = targetWidth;
     height = targetHeight;
-    objShape = (Shape) shape;
+    density = targetDensity;
+    friction = targetFriction;
+    objShape = (shape <= 3) ? (Shape) shape : Box;
     SetTextureFromeFile(renderer, textureFile);
-    SetUpdateFunction(DefaultUpdates::MovePlayer);
+    SetUpdateFunction(DefaultUpdates::Empty);
 }
 GameObject::~GameObject() {
     if (targetTexture != nullptr || targetTexture != NULL) SDL_DestroyTexture(targetTexture);
@@ -21,6 +23,8 @@ GameObject* GameObject::Clone(SDL_Renderer* targetRenderer) {
     newBody.angle = objBodyDef.angle;
     GameObject* newObj = new GameObject(targetRenderer, newBody, objShape, width, height, GetFilePath());
     newObj->SetTextureFromeFile(targetRenderer, newObj->GetFilePath());
+    void (*objUpdateFunction)(void* gObj) = GetUpdateFunction();
+    newObj->SetUpdateFunction(objUpdateFunction);
     return newObj;
 }
 void GameObject::CreateAndPlaceBody(b2World* phyWorld) {
@@ -30,8 +34,8 @@ void GameObject::CreateAndPlaceBody(b2World* phyWorld) {
         box.SetAsBox(width / 2, height / 2);
         b2FixtureDef boxFixtureDef;
         boxFixtureDef.shape = &box;
-        boxFixtureDef.density = 1.0f;
-        boxFixtureDef.friction = 0.3f;
+        boxFixtureDef.density = density;
+        boxFixtureDef.friction = friction;
         objBody->CreateFixture(&boxFixtureDef);
     } else if (objShape == Ecllipse) {
         const int STEPS = 32;
@@ -49,7 +53,8 @@ void GameObject::CreateAndPlaceBody(b2World* phyWorld) {
         cir.m_radius = b;
         b2FixtureDef FixtureDef;
         FixtureDef.shape = &cir;
-        FixtureDef.density = 1.0f;
+        FixtureDef.density = density;
+        FixtureDef.friction = friction;
         objBody->CreateFixture(&FixtureDef);
 
         //chain made for ellipse collisions
@@ -57,7 +62,8 @@ void GameObject::CreateAndPlaceBody(b2World* phyWorld) {
         chainShape.CreateLoop(verts, STEPS);
         b2FixtureDef triFixtureDef;
         triFixtureDef.shape = &chainShape;
-        triFixtureDef.density = 1.0f;
+        triFixtureDef.density = density;
+        triFixtureDef.friction = friction;
         objBody->CreateFixture(&triFixtureDef);
     } else if (objShape == Polygon) {
         b2Vec2 points[3] = {b2Vec2(0, -0.5f), b2Vec2(0.5f, 0.5f), b2Vec2(-0.5f, 0.5f)};
@@ -70,8 +76,8 @@ void GameObject::CreateAndPlaceBody(b2World* phyWorld) {
         polygon.Set(points, 3);
         b2FixtureDef polygonFixtureDef;
         polygonFixtureDef.shape = &polygon;
-        polygonFixtureDef.density = 1.0f;
-        polygonFixtureDef.friction = 0.3f;
+        polygonFixtureDef.density = density;
+        polygonFixtureDef.friction = friction;
         objBody->CreateFixture(&polygonFixtureDef);
     }
 }

@@ -18,6 +18,19 @@ class RayCastCallback : public b2RayCastCallback {
 };
 
 namespace DefaultUpdates {
+    void* functionList[2] = {Empty, MovePlayer};
+    int GetFunctionNumber(void (*function)(void* gObj)) {
+        for (int i = 0; i < 2; i++) {
+            if (functionList[i] == function) {
+                return i;
+            }
+        }
+        return 0;
+    }
+    void (*GetFunctionFromNumber(int num))(void*) {
+        return (void(*)(void* gObj))functionList[num];
+    }
+    
     void Empty(void* gObj) {
         //do nothing
     }
@@ -29,6 +42,7 @@ namespace DefaultUpdates {
         b2Vec2 endPoint = b2Vec2(floorPoint.x, floorPoint.y + 0.05f);
         playerObj->objBody->GetWorld()->RayCast(&RayData, floorPoint, endPoint);
         b2Vec2 impulse = b2Vec2(0.0f, 0.0f);
+        playerObj->objBody->SetFixedRotation(true);
         if (KeyData::KeyJustPressed(SDL_SCANCODE_W) && RayData.outHit) {
             impulse.y -= 8;
         }

@@ -9,7 +9,7 @@
 
 class GameObject {
     public:
-        GameObject(SDL_Renderer* renderer, b2BodyDef targetBody, int shape, float targetWidth, float targetHeight, std::string textureFile);
+        GameObject(SDL_Renderer* renderer, b2BodyDef targetBody, int shape=3, float targetWidth=1.0f, float targetHeight=1.0f, std::string textureFile="",  float targetDensity=1.0f, float targetFriction=0.3f);
         ~GameObject();
 
         //variables of a gameobject
@@ -20,6 +20,8 @@ class GameObject {
         SDL_Color color;
         float width;
         float height;
+        float density = 1.0f;
+        float friction = 0.3f;
 
         //sets the texture of a gameobject from a file location
         void SetTextureFromeFile(SDL_Renderer* renderer, std::string textureFile);
@@ -32,6 +34,7 @@ class GameObject {
         void SetUpdateFunction(void (*functionPointer)(void* gObj)) {
             updateFunction = functionPointer;
         }
+        void  (*GetUpdateFunction())(void*) {return updateFunction; }
         void (*updateFunction)(void* gObj) = nullptr;
 
         //operator overrides for checking this data structure

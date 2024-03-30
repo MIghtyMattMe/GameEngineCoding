@@ -5,6 +5,8 @@
 #include <iostream>
 
 namespace DefaultUpdates {
+    int GetFunctionNumber(void (*function)(void* gObj));
+    void (*GetFunctionFromNumber(int num))(void*);
     void Empty(void* gObj);
     void MovePlayer(void* gObj);
 };

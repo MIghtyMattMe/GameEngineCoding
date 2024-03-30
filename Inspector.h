@@ -109,6 +109,8 @@ namespace Inspector {
         ImGui::SliderFloat("Angle", &selectedObject->objBodyDef.angle, 0, 2 * b2_pi);
         ImGui::SliderFloat("Width", &selectedObject->width, 0.1f, 20);
         ImGui::SliderFloat("Height", &selectedObject->height, 0.1f, 20);
+        ImGui::SliderFloat("Density", &selectedObject->density, 0.01f, 10);
+        ImGui::SliderFloat("Friction", &selectedObject->friction, 0, 10);
         selectedObject->objBodyDef.position.Set(xPos, yPos);
         
         BuildPhysicsBodySelector(selectedObject);

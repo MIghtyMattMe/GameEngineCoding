@@ -211,6 +211,11 @@ namespace EngineManager {
                 return;
             }
             newObj = new GameObject(currRenderer, newBody, brush->getType(), targetWidth, targetHeight, brush->getTextureFile());
+            if (brush->getType() == Brush::Player) {
+                newObj->SetUpdateFunction(DefaultUpdates::MovePlayer);
+                newObj->objBodyDef.type = b2_dynamicBody;
+                newObj->objBodyDef.fixedRotation = true;
+            }
         } else {
             newObj = new GameObject(currRenderer, newBody, 0, targetWidth, targetHeight, textureFile);
         }
@@ -303,7 +308,8 @@ namespace EngineManager {
             newBody.position.Set(std::stof(gObjPieces[0]), std::stof(gObjPieces[1]));
             newBody.angle = std::stof(gObjPieces[2]);
             newBody.type = (b2BodyType) std::stoi(gObjPieces[3]);
-            newObj = new GameObject(currRenderer, newBody, (GameObject::Shape) std::stoi(gObjPieces[4]), std::stof(gObjPieces[9]), std::stof(gObjPieces[10]), input);
+            newObj = new GameObject(currRenderer, newBody, (GameObject::Shape) std::stoi(gObjPieces[4]), std::stof(gObjPieces[9]), std::stof(gObjPieces[10]), input, std::stof(gObjPieces[11]), std::stof(gObjPieces[12]));
+            newObj->SetUpdateFunction(DefaultUpdates::GetFunctionFromNumber(std::stoi(gObjPieces[13])));
             AddToViewPort(newObj);
         }
         srcFile.close();
@@ -325,6 +331,9 @@ namespace EngineManager {
             newLine += std::to_string(gObj->color.a) + ":";
             newLine += std::to_string(gObj->width) + ":";
             newLine += std::to_string(gObj->height) + ":";
+            newLine += std::to_string(gObj->density) + ":";
+            newLine += std::to_string(gObj->friction) + ":";
+            newLine += std::to_string(DefaultUpdates::GetFunctionNumber(gObj->updateFunction)) + ":";
             newLine += gObj->GetFilePath();
             dstFile << newLine << std::endl;
             newLine = "";

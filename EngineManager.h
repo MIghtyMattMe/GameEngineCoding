@@ -4,6 +4,7 @@
 #include "SDL3/SDL_image.h"
 #include "box2d/box2d.h"
 #include "GameObject.h"
+#include "UpdateFunctions/Default.h"
 #include <vector>
 
 //these are used for debugging and saving/loading files
