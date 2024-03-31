@@ -131,5 +131,22 @@ namespace Inspector {
         
         BuildPhysicsBodySelector(selectedObject);
         BuildShapeSelector(selectedObject);
+        ImGui::Text("Color:");
+        int colorR = selectedObject->color.r;
+        int colorG = selectedObject->color.g;
+        int colorB = selectedObject->color.b;
+        int colorA = selectedObject->color.a;
+        if (ImGui::SliderInt("R", &colorR, 0, 255)) {
+            selectedObject->color.r = colorR;
+        }
+        if (ImGui::SliderInt("G", &colorG, 0, 255)) {
+            selectedObject->color.g = colorG;
+        }
+        if (ImGui::SliderInt("B", &colorB, 0, 255)) {
+            selectedObject->color.b = colorB;
+        }
+        if (ImGui::SliderInt("A", &colorA, 0, 255)) {
+            selectedObject->color.a = colorA;
+        }
     }
 }

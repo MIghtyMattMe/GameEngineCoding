@@ -17,7 +17,7 @@ class GameObject {
         b2Body* objBody = nullptr;
         enum Shape {None = 0, Ecllipse = 1, Box = 2, Polygon = 3};
         Shape objShape = None;
-        SDL_Color color;
+        SDL_Color color = SDL_Color(255, 255, 255, 255);
         float width;
         float height;
         float density = 1.0f;

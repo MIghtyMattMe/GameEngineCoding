@@ -18,7 +18,7 @@ void Brush::setType(Type brushType) {
             textureToLoad = "resources/Circle.png";
             break;
         case 2:
-            textureToLoad = "resources/Square.bmp";
+            textureToLoad = "resources/Square.png";
             break;
         case 3:
             textureToLoad = "resources/Triangle.png";

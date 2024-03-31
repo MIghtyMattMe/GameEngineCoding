@@ -264,6 +264,8 @@ namespace EngineManager {
                 texture_rect.h = MeterToPixel(gObj->height);
                 float rotation = (playing) ? gObj->objBody->GetAngle() : gObj->objBodyDef.angle;
                 rotation *= (180 /b2_pi);
+                SDL_SetTextureColorMod(gObj->GetTexturePtr(), gObj->color.r, gObj->color.g, gObj->color.b);
+                SDL_SetTextureAlphaMod(gObj->GetTexturePtr(), gObj->color.a);
                 SDL_RenderTextureRotated(currRenderer, gObj->GetTexturePtr(), NULL, &texture_rect, rotation, NULL, SDL_FlipMode::SDL_FLIP_NONE);
             }
             j++;
@@ -346,6 +348,7 @@ namespace EngineManager {
             newObj = new GameObject(currRenderer, newBody, (GameObject::Shape) std::stoi(gObjPieces[4]), std::stof(gObjPieces[9]), std::stof(gObjPieces[10]), input, std::stof(gObjPieces[11]), std::stof(gObjPieces[12]));
             newObj->SetUpdateFunction(DefaultUpdates::GetFunctionFromNumber(std::stoi(gObjPieces[14])));
             newObj->layer = std::stoi(gObjPieces[13]);
+            newObj->color = SDL_Color(std::stoi(gObjPieces[5]), std::stoi(gObjPieces[6]), std::stoi(gObjPieces[7]), std::stoi(gObjPieces[8]));
             AddToViewPort(newObj);
         }
         srcFile.close();

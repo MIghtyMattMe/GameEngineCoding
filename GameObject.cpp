@@ -26,6 +26,7 @@ GameObject* GameObject::Clone(SDL_Renderer* targetRenderer) {
     void (*objUpdateFunction)(void* gObj) = GetUpdateFunction();
     newObj->SetUpdateFunction(objUpdateFunction);
     newObj->layer = layer;
+    newObj->color = color;
     return newObj;
 }
 void GameObject::CreateAndPlaceBody(b2World* phyWorld) {
@@ -88,6 +89,8 @@ void GameObject::CreateAndPlaceBody(b2World* phyWorld) {
         polygonFixtureDef.filter.categoryBits = (1 << layer);
         polygonFixtureDef.filter.maskBits = (1 << layer);
         objBody->CreateFixture(&polygonFixtureDef);
+    } else if (objShape == None) {
+        objBody = phyWorld->CreateBody(&objBodyDef);
     }
 }
 
