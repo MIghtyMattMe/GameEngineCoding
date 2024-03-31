@@ -101,7 +101,7 @@ namespace Inspector {
         ImGui::Text(height.c_str());
     }
 
-    void BuildNormalInspector(GameObject* selectedObject) {
+    void BuildNormalInspector(GameObject* selectedObject, std::vector<GameObject*>* currObjects, SDL_Renderer* renderer) {
         float xPos = selectedObject->objBodyDef.position.x;
         float yPos = selectedObject->objBodyDef.position.y;
         ImGui::SliderFloat("X Pos", &xPos, 0, 50);
@@ -109,6 +109,22 @@ namespace Inspector {
         ImGui::SliderFloat("Angle", &selectedObject->objBodyDef.angle, 0, 2 * b2_pi);
         ImGui::SliderFloat("Width", &selectedObject->width, 0.1f, 20);
         ImGui::SliderFloat("Height", &selectedObject->height, 0.1f, 20);
+        if (ImGui::SliderInt("Layer", &selectedObject->layer, 0, 7)) {
+            bool found = false;
+            for (Uint8 i = 0; i < 8; i++) {//(std::vector<GameObject*> &layer : currObjects) {
+                for (Uint8 k = 0; k < currObjects[i].size(); k++) {
+                    if (*currObjects[i][k] == *selectedObject) {
+                        currObjects[selectedObject->layer].push_back(selectedObject);
+                        //std::cout << "Moved to Layer: " + std::to_string(selectedObject->layer) + " - New Layer Size: " + std::to_string(currObjects[selectedObject->layer].size()) << std::endl;
+                        selectedObject->SetTextureFromeFile(renderer, selectedObject->GetFilePath());
+                        currObjects[i].erase(currObjects[i].begin() + k);
+                        found = true;
+                        break;
+                    }
+                }
+                if (found) break;
+            }
+        }
         ImGui::SliderFloat("Density", &selectedObject->density, 0.01f, 10);
         ImGui::SliderFloat("Friction", &selectedObject->friction, 0, 10);
         selectedObject->objBodyDef.position.Set(xPos, yPos);

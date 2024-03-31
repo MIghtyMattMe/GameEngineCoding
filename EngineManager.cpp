@@ -13,8 +13,10 @@ namespace EngineManager {
     b2Vec2 cameraPos = b2Vec2(0, 0);
 
     //These are our gameobjects in the world
-    std::vector<GameObject*> objectsToLoad = std::vector<GameObject*>();
-    std::vector<GameObject*> savedObjects = std::vector<GameObject*>();
+    //std::vector<GameObject*> objectsToLoad = std::vector<GameObject*>();
+    std::vector<std::vector<GameObject*>> layeredObjectsToLoad = std::vector<std::vector<GameObject*>>();
+    std::vector<std::vector<GameObject*>> layeredObjectsSaved = std::vector<std::vector<GameObject*>>();
+    //std::vector<GameObject*> savedObjects = std::vector<GameObject*>();
     GameObject* selectedObject = nullptr;
 
     //physics variables and world
@@ -28,20 +30,28 @@ namespace EngineManager {
     void InitEngine(SDL_Renderer* renderer) {
         brush = new Brush();
         currRenderer = renderer;
+        for (int i = 0; i < 8; i++) {
+            layeredObjectsToLoad.push_back(std::vector<GameObject*>());
+            layeredObjectsSaved.push_back(std::vector<GameObject*>());
+        }
     }
     //remove all our allocated memory
     void CloseEngine() {
         delete brush;
         brush = NULL;
-        for (GameObject* gObj : objectsToLoad) {
-            delete gObj;
+        for (std::vector<GameObject*> &layer : layeredObjectsToLoad) {
+            for (GameObject* &gObj : layer) {
+                delete gObj;
+            }
+            layer.clear();
         }
-        objectsToLoad.clear();
-        for (GameObject* gObj : savedObjects) {
-            delete gObj;
+        for (std::vector<GameObject*> &layer : layeredObjectsSaved) {
+            for (GameObject* &gObj : layer) {
+                delete gObj;
+            }
+            layer.clear();
         }
-        savedObjects.clear();
-        //selectedObj is still in list of objectsToLoad, so it already
+        //selectedObj is still in list of layeredObjectsToLoad, so it already
         //was deleted, but we still need to nullify the pointer
         selectedObject = NULL;
         currRenderer = NULL;
@@ -88,13 +98,19 @@ namespace EngineManager {
             if (playing) {
                 Inspector::BuildPlayModeInspector(selectedObject);
             } else {
-                Inspector::BuildNormalInspector(selectedObject);
+                //std::cout << std::to_string(selectedObject->layer) << std::endl;
+                Inspector::BuildNormalInspector(selectedObject, &layeredObjectsToLoad[0], currRenderer);
+                //std::cout << std::to_string(selectedObject->layer) << std::endl;
                 if (ImGui::Button("Delete")) {
-                    for (size_t i = 0; i < objectsToLoad.size(); i++) {
-                        if (*objectsToLoad[i] == *selectedObject) {
-                            objectsToLoad.erase(objectsToLoad.begin() + i);
+                    std::cout << std::to_string(selectedObject->layer) << std::endl;
+                    for (size_t i = 0; i < layeredObjectsToLoad[selectedObject->layer].size(); i++) {
+                        if (layeredObjectsToLoad[selectedObject->layer][i] == selectedObject) {
+                            SDL_Log("Deleted");
+                            //std::cout << std::to_string(layeredObjectsToLoad[selectedObject->layer].size()) << std::endl;
+                            layeredObjectsToLoad[selectedObject->layer].erase(layeredObjectsToLoad[selectedObject->layer].begin() + i);
+                            //std::cout << std::to_string(layeredObjectsToLoad[selectedObject->layer].size()) << std::endl;
                             delete selectedObject;
-                            selectedObject = NULL;
+                            selectedObject = nullptr;
                             break;
                         }
                     }
@@ -126,6 +142,7 @@ namespace EngineManager {
         ImGui::SameLine();
         //when Stop is hit, read all gameObjects from saved vector and delete memory
         if (ImGui::Button("Load") && !playing) {
+            selectedObject = nullptr;
             std::string loadPath = CreateLoadDialogBox();
             if (!loadPath.empty()) {
                 if (!LoadFile(loadPath)) {
@@ -145,9 +162,11 @@ namespace EngineManager {
             selectedObject = nullptr;
             if (!playing) {
                 playJustHit = true;
-                for (GameObject* gObj : objectsToLoad) {
-                    savedObjects.push_back(gObj->Clone(currRenderer));
-                    gObj->CreateAndPlaceBody(phyWorld);
+                for (Uint8 i = 0; i < layeredObjectsToLoad.size(); i++) {
+                    for (GameObject* &gObj : layeredObjectsToLoad[i]) {
+                        layeredObjectsSaved[i].push_back(gObj->Clone(currRenderer));
+                        gObj->CreateAndPlaceBody(phyWorld);
+                    }
                 }
             }
             playing = true;
@@ -158,16 +177,21 @@ namespace EngineManager {
         if (ImGui::Button("Stop")) {
             selectedObject = nullptr;
             if (playing) {
-                for (GameObject* gObj : objectsToLoad) {
-                    if (gObj->objBody != nullptr) phyWorld->DestroyBody(gObj->objBody);
-                    delete gObj; //This delete's the gomeObjects
+                for (Uint8 i = 0; i < layeredObjectsToLoad.size(); i++) {
+                    //destroy our game world
+                    for (GameObject* &gObj : layeredObjectsToLoad[i]) {
+                        if (gObj->objBody != nullptr) phyWorld->DestroyBody(gObj->objBody);
+                        delete gObj; //This delete's the gomeObjects
+                    }
+                    layeredObjectsToLoad[i].clear(); //This delete's the pointers
+
+                    //rebuild the world using saved objects
+                    for (GameObject* &gObj : layeredObjectsSaved[i]) {
+                        layeredObjectsToLoad[i].push_back(gObj->Clone(currRenderer));
+                        delete gObj;
+                    }
+                    layeredObjectsSaved[i].clear();
                 }
-                objectsToLoad.clear(); //This delete's the pointers
-                for (GameObject* gObj : savedObjects) {
-                    objectsToLoad.push_back(gObj->Clone(currRenderer));
-                    delete gObj;
-                }
-                savedObjects.clear();
             }
             playing = false;
         }
@@ -180,17 +204,19 @@ namespace EngineManager {
     }
     GameObject* FindSelectedObject(b2Vec2 clickedPos) {
         clickedPos += cameraPos;
-        for (GameObject* gObj : objectsToLoad) {
-            //find if the clicked position is on the object's rectangle
-            float leftLimit = (playing) ? gObj->objBody->GetPosition().x - (gObj->width / 2) : gObj->objBodyDef.position.x - (gObj->width / 2);
-            float rightLimit = (playing) ? gObj->objBody->GetPosition().x + (gObj->width / 2) : gObj->objBodyDef.position.x + (gObj->width / 2);
-            float upLimit = (playing) ? gObj->objBody->GetPosition().y - (gObj->height / 2) : gObj->objBodyDef.position.y - (gObj->height / 2);
-            float downLimit = (playing) ? gObj->objBody->GetPosition().y + (gObj->height / 2) : gObj->objBodyDef.position.y + (gObj->height / 2);
-            if (clickedPos.x < rightLimit && 
-            clickedPos.x > leftLimit &&
-            clickedPos.y < downLimit &&
-            clickedPos.y > upLimit) {
-                return gObj;
+        for (std::vector<GameObject*> &layer : layeredObjectsToLoad) {
+            for (GameObject* &gObj : layer) {
+                //find if the clicked position is on the object's rectangle
+                float leftLimit = (playing) ? gObj->objBody->GetPosition().x - (gObj->width / 2) : gObj->objBodyDef.position.x - (gObj->width / 2);
+                float rightLimit = (playing) ? gObj->objBody->GetPosition().x + (gObj->width / 2) : gObj->objBodyDef.position.x + (gObj->width / 2);
+                float upLimit = (playing) ? gObj->objBody->GetPosition().y - (gObj->height / 2) : gObj->objBodyDef.position.y - (gObj->height / 2);
+                float downLimit = (playing) ? gObj->objBody->GetPosition().y + (gObj->height / 2) : gObj->objBodyDef.position.y + (gObj->height / 2);
+                if (clickedPos.x < rightLimit && 
+                clickedPos.x > leftLimit &&
+                clickedPos.y < downLimit &&
+                clickedPos.y > upLimit) {
+                    return gObj;
+                }
             }
         }
         return nullptr;
@@ -198,7 +224,7 @@ namespace EngineManager {
 
     //These take an existing gameObject (or create a new one) and adds it to the list of objects to be rendered
     void AddToViewPort(GameObject* gameObject) {
-        objectsToLoad.push_back(gameObject);
+        layeredObjectsToLoad[gameObject->layer].push_back(gameObject);
     }
     void AddToViewPort(b2Vec2 targetPos, float targetWidth, float targetHeight, std::string textureFile) {
         GameObject* newObj = nullptr;
@@ -222,20 +248,25 @@ namespace EngineManager {
         if (playing) {
             newObj->CreateAndPlaceBody(phyWorld);
         }
-        objectsToLoad.push_back(newObj);
+        layeredObjectsToLoad[newObj->layer].push_back(newObj);
     }
     //handles the actual drawing of textures
     void DrawViewPort() {
         //go over every object, make a rectangle, and apply the texture
-        for (GameObject* gObj : objectsToLoad) {
-            SDL_FRect texture_rect;
-            texture_rect.x = (playing) ? MeterToPixel(gObj->objBody->GetPosition().x - (gObj->width / 2) - cameraPos.x) : MeterToPixel(gObj->objBodyDef.position.x - (gObj->width / 2) - cameraPos.x);
-            texture_rect.y = (playing) ? MeterToPixel(gObj->objBody->GetPosition().y - (gObj->height / 2) - cameraPos.y) : MeterToPixel(gObj->objBodyDef.position.y - (gObj->height / 2) - cameraPos.y);
-            texture_rect.w = MeterToPixel(gObj->width);
-            texture_rect.h = MeterToPixel(gObj->height);
-            float rotation = (playing) ? gObj->objBody->GetAngle() : gObj->objBodyDef.angle;
-            rotation *= (180 /b2_pi);
-            SDL_RenderTextureRotated(currRenderer, gObj->GetTexturePtr(), NULL, &texture_rect, rotation, NULL, SDL_FlipMode::SDL_FLIP_NONE);
+        int j = 0;
+        for (std::vector<GameObject*> &layer : layeredObjectsToLoad) {
+            for (size_t i = 0; i < layer.size(); i++) {
+                GameObject* gObj = layer[i];
+                SDL_FRect texture_rect;
+                texture_rect.x = (playing) ? MeterToPixel(gObj->objBody->GetPosition().x - (gObj->width / 2) - cameraPos.x) : MeterToPixel(gObj->objBodyDef.position.x - (gObj->width / 2) - cameraPos.x);
+                texture_rect.y = (playing) ? MeterToPixel(gObj->objBody->GetPosition().y - (gObj->height / 2) - cameraPos.y) : MeterToPixel(gObj->objBodyDef.position.y - (gObj->height / 2) - cameraPos.y);
+                texture_rect.w = MeterToPixel(gObj->width);
+                texture_rect.h = MeterToPixel(gObj->height);
+                float rotation = (playing) ? gObj->objBody->GetAngle() : gObj->objBodyDef.angle;
+                rotation *= (180 /b2_pi);
+                SDL_RenderTextureRotated(currRenderer, gObj->GetTexturePtr(), NULL, &texture_rect, rotation, NULL, SDL_FlipMode::SDL_FLIP_NONE);
+            }
+            j++;
         }
     }
 
@@ -244,8 +275,10 @@ namespace EngineManager {
         if (!playing) return;
         float timeStep = 1.0f / 300.0f;
         phyWorld->Step(timeStep, 6, 2);
-        for (GameObject* gObj : objectsToLoad) {
-            (gObj->updateFunction)(gObj);
+        for (std::vector<GameObject*> &layer : layeredObjectsToLoad) {
+            for (GameObject* &gObj : layer) {
+                (gObj->updateFunction)(gObj);
+            }
         }
     }
     void ReadPlayInput(SDL_Event event) {
@@ -288,10 +321,12 @@ namespace EngineManager {
         std::ifstream srcFile(path);
         std::string input;
         //then delete the current game
-        for (GameObject* gObj : objectsToLoad) {
-            delete gObj;
+        for (std::vector<GameObject*> &layer : layeredObjectsToLoad) {
+            for (GameObject* &gObj : layer) {
+                delete gObj;
+            }
+            layer.clear();
         }
-        objectsToLoad.clear();
         //then, read new gameObjects from the file
         while (std::getline(srcFile, input)) {
             size_t lineIndex = 0;
@@ -309,7 +344,8 @@ namespace EngineManager {
             newBody.angle = std::stof(gObjPieces[2]);
             newBody.type = (b2BodyType) std::stoi(gObjPieces[3]);
             newObj = new GameObject(currRenderer, newBody, (GameObject::Shape) std::stoi(gObjPieces[4]), std::stof(gObjPieces[9]), std::stof(gObjPieces[10]), input, std::stof(gObjPieces[11]), std::stof(gObjPieces[12]));
-            newObj->SetUpdateFunction(DefaultUpdates::GetFunctionFromNumber(std::stoi(gObjPieces[13])));
+            newObj->SetUpdateFunction(DefaultUpdates::GetFunctionFromNumber(std::stoi(gObjPieces[14])));
+            newObj->layer = std::stoi(gObjPieces[13]);
             AddToViewPort(newObj);
         }
         srcFile.close();
@@ -319,24 +355,27 @@ namespace EngineManager {
         //write all the gameObjects to the file, each terminated by new line (\n)
         std::ofstream dstFile(path, std::ofstream::trunc);
         std::string newLine = "";
-        for (GameObject* gObj : objectsToLoad) {
-            newLine += std::to_string(gObj->objBodyDef.position.x) + ":";
-            newLine += std::to_string(gObj->objBodyDef.position.y) + ":";
-            newLine += std::to_string(gObj->objBodyDef.angle) + ":";
-            newLine += std::to_string(gObj->objBodyDef.type) + ":";
-            newLine += std::to_string(gObj->objShape) + ":";
-            newLine += std::to_string(gObj->color.r) + ":";
-            newLine += std::to_string(gObj->color.g) + ":";
-            newLine += std::to_string(gObj->color.b) + ":";
-            newLine += std::to_string(gObj->color.a) + ":";
-            newLine += std::to_string(gObj->width) + ":";
-            newLine += std::to_string(gObj->height) + ":";
-            newLine += std::to_string(gObj->density) + ":";
-            newLine += std::to_string(gObj->friction) + ":";
-            newLine += std::to_string(DefaultUpdates::GetFunctionNumber(gObj->updateFunction)) + ":";
-            newLine += gObj->GetFilePath();
-            dstFile << newLine << std::endl;
-            newLine = "";
+        for (std::vector<GameObject*> &layer : layeredObjectsToLoad) {
+            for (GameObject* &gObj : layer) {
+                newLine += std::to_string(gObj->objBodyDef.position.x) + ":";
+                newLine += std::to_string(gObj->objBodyDef.position.y) + ":";
+                newLine += std::to_string(gObj->objBodyDef.angle) + ":";
+                newLine += std::to_string(gObj->objBodyDef.type) + ":";
+                newLine += std::to_string(gObj->objShape) + ":";
+                newLine += std::to_string(gObj->color.r) + ":";
+                newLine += std::to_string(gObj->color.g) + ":";
+                newLine += std::to_string(gObj->color.b) + ":";
+                newLine += std::to_string(gObj->color.a) + ":";
+                newLine += std::to_string(gObj->width) + ":";
+                newLine += std::to_string(gObj->height) + ":";
+                newLine += std::to_string(gObj->density) + ":";
+                newLine += std::to_string(gObj->friction) + ":";
+                newLine += std::to_string(gObj->layer) + ":";
+                newLine += std::to_string(DefaultUpdates::GetFunctionNumber(gObj->updateFunction)) + ":";
+                newLine += gObj->GetFilePath();
+                dstFile << newLine << std::endl;
+                newLine = "";
+            }
         }
         dstFile.close();
         return true;

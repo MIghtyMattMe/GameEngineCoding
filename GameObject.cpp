@@ -12,7 +12,7 @@ GameObject::GameObject(SDL_Renderer* renderer, b2BodyDef targetBody, int shape, 
     SetUpdateFunction(DefaultUpdates::Empty);
 }
 GameObject::~GameObject() {
-    if (targetTexture != nullptr || targetTexture != NULL) SDL_DestroyTexture(targetTexture);
+    if (targetTexture != NULL || targetTexture != nullptr) SDL_DestroyTexture(targetTexture);
     targetTexture = NULL;
     objBody = NULL;
 }
@@ -25,6 +25,7 @@ GameObject* GameObject::Clone(SDL_Renderer* targetRenderer) {
     newObj->SetTextureFromeFile(targetRenderer, newObj->GetFilePath());
     void (*objUpdateFunction)(void* gObj) = GetUpdateFunction();
     newObj->SetUpdateFunction(objUpdateFunction);
+    newObj->layer = layer;
     return newObj;
 }
 void GameObject::CreateAndPlaceBody(b2World* phyWorld) {
@@ -36,6 +37,8 @@ void GameObject::CreateAndPlaceBody(b2World* phyWorld) {
         boxFixtureDef.shape = &box;
         boxFixtureDef.density = density;
         boxFixtureDef.friction = friction;
+        boxFixtureDef.filter.categoryBits = (1 << layer);
+        boxFixtureDef.filter.maskBits = (1 << layer);
         objBody->CreateFixture(&boxFixtureDef);
     } else if (objShape == Ecllipse) {
         const int STEPS = 32;
@@ -55,6 +58,8 @@ void GameObject::CreateAndPlaceBody(b2World* phyWorld) {
         FixtureDef.shape = &cir;
         FixtureDef.density = density;
         FixtureDef.friction = friction;
+        FixtureDef.filter.categoryBits = (1 << layer);
+        FixtureDef.filter.maskBits = (1 << layer);
         objBody->CreateFixture(&FixtureDef);
 
         //chain made for ellipse collisions
@@ -64,6 +69,8 @@ void GameObject::CreateAndPlaceBody(b2World* phyWorld) {
         triFixtureDef.shape = &chainShape;
         triFixtureDef.density = density;
         triFixtureDef.friction = friction;
+        triFixtureDef.filter.categoryBits = (1 << layer);
+        triFixtureDef.filter.maskBits = (1 << layer);
         objBody->CreateFixture(&triFixtureDef);
     } else if (objShape == Polygon) {
         b2Vec2 points[3] = {b2Vec2(0, -0.5f), b2Vec2(0.5f, 0.5f), b2Vec2(-0.5f, 0.5f)};
@@ -78,6 +85,8 @@ void GameObject::CreateAndPlaceBody(b2World* phyWorld) {
         polygonFixtureDef.shape = &polygon;
         polygonFixtureDef.density = density;
         polygonFixtureDef.friction = friction;
+        polygonFixtureDef.filter.categoryBits = (1 << layer);
+        polygonFixtureDef.filter.maskBits = (1 << layer);
         objBody->CreateFixture(&polygonFixtureDef);
     }
 }

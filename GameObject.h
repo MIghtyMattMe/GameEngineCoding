@@ -22,6 +22,7 @@ class GameObject {
         float height;
         float density = 1.0f;
         float friction = 0.3f;
+        int layer = 0;
 
         //sets the texture of a gameobject from a file location
         void SetTextureFromeFile(SDL_Renderer* renderer, std::string textureFile);
@@ -47,7 +48,8 @@ class GameObject {
             if (color.g != other.color.g) return false;
             if (color.b != other.color.b) return false;
             if (color.a != other.color.a) return false;
-            if (targetTexture != other.targetTexture) return false;
+            if (textureFilePath != other.textureFilePath) return false;
+            if (objShape != other.objShape) return false;
             return true;
         }
         GameObject* Clone(SDL_Renderer* targetRenderer);
