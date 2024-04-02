@@ -7,7 +7,7 @@ GameObject::GameObject(SDL_Renderer* renderer, b2BodyDef targetBody, int shape, 
     height = targetHeight;
     density = targetDensity;
     friction = targetFriction;
-    objShape = (shape <= 3) ? (Shape) shape : Box;
+    objShape = (shape <= 3) ? (Shape) shape : Polygon;
     SetTextureFromeFile(renderer, textureFile);
     SetUpdateFunction(DefaultUpdates::Empty);
 }
@@ -27,6 +27,7 @@ GameObject* GameObject::Clone(SDL_Renderer* targetRenderer) {
     newObj->SetUpdateFunction(objUpdateFunction);
     newObj->layer = layer;
     newObj->color = color;
+    newObj->verts = verts;
     return newObj;
 }
 void GameObject::CreateAndPlaceBody(b2World* phyWorld) {
@@ -74,14 +75,14 @@ void GameObject::CreateAndPlaceBody(b2World* phyWorld) {
         triFixtureDef.filter.maskBits = (1 << layer);
         objBody->CreateFixture(&triFixtureDef);
     } else if (objShape == Polygon) {
-        b2Vec2 points[3] = {b2Vec2(0, -0.5f), b2Vec2(0.5f, 0.5f), b2Vec2(-0.5f, 0.5f)};
-        for (int i = 0; i < 3; i++) {
-            points[i].x *= width;
-            points[i].y *= height;
+        std::vector<b2Vec2> polyPoints = verts;
+        for (Uint8 i = 0; i < polyPoints.size(); i++) {
+            polyPoints[i].x *= width;
+            polyPoints[i].y *= height;
         }
         objBody = phyWorld->CreateBody(&objBodyDef);
         b2PolygonShape polygon;
-        polygon.Set(points, 3);
+        polygon.Set(polyPoints.data(), polyPoints.size());
         b2FixtureDef polygonFixtureDef;
         polygonFixtureDef.shape = &polygon;
         polygonFixtureDef.density = density;

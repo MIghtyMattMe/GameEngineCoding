@@ -131,6 +131,35 @@ namespace Inspector {
         
         BuildPhysicsBodySelector(selectedObject);
         BuildShapeSelector(selectedObject);
+
+        if (selectedObject->objShape == GameObject::Polygon) {
+            ImGui::Text("Polygon Verts:");
+            if (ImGui::Button("Add Vert")) {
+                if (selectedObject->verts.size() < 8) {
+                    selectedObject->verts.push_back(b2Vec2(0,0));
+                }
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("Del Vert")) {
+                if (selectedObject->verts.size() > 3) {
+                    selectedObject->verts.erase(selectedObject->verts.end() - 1);
+                }
+            }
+            ImGui::PushItemWidth(70.0f);
+            for (Uint8 i = 0; i < selectedObject->verts.size(); i++) {
+                ImGui::Text("(");
+                ImGui::SameLine();
+                ImGui::SliderFloat(("##X" + std::to_string(i)).c_str(), &selectedObject->verts[i].x, -5.0f, 5.0f, "%.1f");
+                ImGui::SameLine();
+                ImGui::Text(",");
+                ImGui::SameLine();
+                ImGui::SliderFloat(("##Y" + std::to_string(i)).c_str(), &selectedObject->verts[i].y, -5.0f, 5.0f, "%.1f");
+                ImGui::SameLine();
+                ImGui::Text(")");
+            }
+            ImGui::PopItemWidth();
+        }
+
         ImGui::Text("Color:");
         int colorR = selectedObject->color.r;
         int colorG = selectedObject->color.g;

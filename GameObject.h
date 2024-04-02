@@ -18,6 +18,7 @@ class GameObject {
         enum Shape {None = 0, Ecllipse = 1, Box = 2, Polygon = 3};
         Shape objShape = None;
         SDL_Color color = SDL_Color(255, 255, 255, 255);
+        std::vector<b2Vec2> verts = {b2Vec2(0, -0.5f), b2Vec2(0.5f, 0.5f), b2Vec2(-0.5f, 0.5f)};
         float width;
         float height;
         float density = 1.0f;

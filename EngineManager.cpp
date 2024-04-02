@@ -206,16 +206,40 @@ namespace EngineManager {
         clickedPos += cameraPos;
         for (std::vector<GameObject*> &layer : layeredObjectsToLoad) {
             for (GameObject* &gObj : layer) {
-                //find if the clicked position is on the object's rectangle
-                float leftLimit = (playing) ? gObj->objBody->GetPosition().x - (gObj->width / 2) : gObj->objBodyDef.position.x - (gObj->width / 2);
-                float rightLimit = (playing) ? gObj->objBody->GetPosition().x + (gObj->width / 2) : gObj->objBodyDef.position.x + (gObj->width / 2);
-                float upLimit = (playing) ? gObj->objBody->GetPosition().y - (gObj->height / 2) : gObj->objBodyDef.position.y - (gObj->height / 2);
-                float downLimit = (playing) ? gObj->objBody->GetPosition().y + (gObj->height / 2) : gObj->objBodyDef.position.y + (gObj->height / 2);
-                if (clickedPos.x < rightLimit && 
-                clickedPos.x > leftLimit &&
-                clickedPos.y < downLimit &&
-                clickedPos.y > upLimit) {
-                    return gObj;
+                if (gObj->objShape == GameObject::Polygon) {
+                    //check the verts
+                    const int numVerts = gObj->verts.size();
+                    b2Vec2 bodyPosition = (playing) ? gObj->objBody->GetPosition() : gObj->objBodyDef.position;
+                    int intersections = 0;
+                    for (Uint8 i = 0; i < numVerts; i++) {
+                        //SDL_FPoint u = SDL_FPoint(clickedPos.x - gObj->verts[i].x, clickedPos.y - gObj->verts[i].y);
+                        b2Vec2 vert1 = b2Vec2(((gObj->verts[i].x * gObj->width) + bodyPosition.x), ((gObj->verts[i].y * gObj->height) + bodyPosition.y));
+                        b2Vec2 vert2 = b2Vec2(((gObj->verts[(i + 1) % numVerts].x * gObj->width) + bodyPosition.x), ((gObj->verts[(i + 1) % numVerts].y * gObj->height) + bodyPosition.y));
+                        b2Vec2 leftRay = b2Vec2(clickedPos.x - 100, clickedPos.y);
+                        bool a = ((leftRay.y - vert1.y) * (clickedPos.x - vert1.x)) > ((clickedPos.y - vert1.y) * (leftRay.x - vert1.x));
+                        bool b = ((leftRay.y - vert2.y) * (clickedPos.x - vert2.x)) > ((clickedPos.y - vert2.y) * (leftRay.x - vert2.x));
+                        bool c = ((vert2.y - vert1.y) * (clickedPos.x - vert1.x)) > ((clickedPos.y - vert1.y) * (vert2.x - vert1.x));
+                        bool d = ((vert2.y - vert1.y) * (leftRay.x - vert1.x)) > ((leftRay.y - vert1.y) * (vert2.x - vert1.x));
+                        if (a != b && c != d) {
+                            intersections++;
+                        }
+                    }
+                    if (intersections % 2) {
+                        return gObj;
+                    }
+                    
+                } else {
+                    //find if the clicked position is on the object's rectangle
+                    float leftLimit = (playing) ? gObj->objBody->GetPosition().x - (gObj->width / 2) : gObj->objBodyDef.position.x - (gObj->width / 2);
+                    float rightLimit = (playing) ? gObj->objBody->GetPosition().x + (gObj->width / 2) : gObj->objBodyDef.position.x + (gObj->width / 2);
+                    float upLimit = (playing) ? gObj->objBody->GetPosition().y - (gObj->height / 2) : gObj->objBodyDef.position.y - (gObj->height / 2);
+                    float downLimit = (playing) ? gObj->objBody->GetPosition().y + (gObj->height / 2) : gObj->objBodyDef.position.y + (gObj->height / 2);
+                    if (clickedPos.x < rightLimit && 
+                    clickedPos.x > leftLimit &&
+                    clickedPos.y < downLimit &&
+                    clickedPos.y > upLimit) {
+                        return gObj;
+                    }
                 }
             }
         }
@@ -257,16 +281,54 @@ namespace EngineManager {
         for (std::vector<GameObject*> &layer : layeredObjectsToLoad) {
             for (size_t i = 0; i < layer.size(); i++) {
                 GameObject* gObj = layer[i];
-                SDL_FRect texture_rect;
-                texture_rect.x = (playing) ? MeterToPixel(gObj->objBody->GetPosition().x - (gObj->width / 2) - cameraPos.x) : MeterToPixel(gObj->objBodyDef.position.x - (gObj->width / 2) - cameraPos.x);
-                texture_rect.y = (playing) ? MeterToPixel(gObj->objBody->GetPosition().y - (gObj->height / 2) - cameraPos.y) : MeterToPixel(gObj->objBodyDef.position.y - (gObj->height / 2) - cameraPos.y);
-                texture_rect.w = MeterToPixel(gObj->width);
-                texture_rect.h = MeterToPixel(gObj->height);
-                float rotation = (playing) ? gObj->objBody->GetAngle() : gObj->objBodyDef.angle;
-                rotation *= (180 /b2_pi);
-                SDL_SetTextureColorMod(gObj->GetTexturePtr(), gObj->color.r, gObj->color.g, gObj->color.b);
-                SDL_SetTextureAlphaMod(gObj->GetTexturePtr(), gObj->color.a);
-                SDL_RenderTextureRotated(currRenderer, gObj->GetTexturePtr(), NULL, &texture_rect, rotation, NULL, SDL_FlipMode::SDL_FLIP_NONE);
+
+                //for polygons, get verts -> translate based on position and width -> translate based on rotation -> convert to pixel space
+                //Apply position to SDL_Vertex -> apply color to SDL_Vertex -> SDL_RenderGeometry()
+                if (gObj->objShape == GameObject::Polygon) {
+                    SDL_Vertex geoVerts[8];
+                    const int numVerts = gObj->verts.size();
+                    b2Vec2 bodyPosition = (playing) ? gObj->objBody->GetPosition() : gObj->objBodyDef.position;
+                    SDL_FPoint centeroid = SDL_FPoint(0, 0);
+                    for (Uint8 i = 0; i < numVerts; i++) {
+                        geoVerts[i].position.x = MeterToPixel((gObj->verts[i].x * gObj->width) + bodyPosition.x - cameraPos.x);
+                        geoVerts[i].position.y = MeterToPixel((gObj->verts[i].y * gObj->height) + bodyPosition.y - cameraPos.y);
+                        geoVerts[i].color.r = gObj->color.r / 255.0f;
+                        geoVerts[i].color.g = gObj->color.g / 255.0f;
+                        geoVerts[i].color.b = gObj->color.b / 255.0f;
+                        geoVerts[i].color.a = gObj->color.a / 255.0f;
+                        centeroid.x += (gObj->verts[i].x * gObj->width) + bodyPosition.x - cameraPos.x;
+                        centeroid.y += (gObj->verts[i].y * gObj->height) + bodyPosition.y - cameraPos.y;
+                    }
+                    centeroid.x = MeterToPixel(centeroid.x / numVerts);
+                    centeroid.y = MeterToPixel(centeroid.y / numVerts);
+                    //map points to various triangles, centered at 0,0
+                    SDL_Vertex center = SDL_Vertex();
+                    center.position = centeroid;
+                    center.color.r = gObj->color.r / 255.0f;
+                    center.color.g = gObj->color.g / 255.0f;
+                    center.color.b = gObj->color.b / 255.0f;
+                    center.color.a = gObj->color.a / 255.0f;
+                    std::vector<SDL_Vertex> geoPoints = std::vector<SDL_Vertex>();
+                    for (Uint8 i = 0; i < numVerts; i++) {
+                        geoPoints.push_back(geoVerts[i]);
+                        geoPoints.push_back(center);
+                        geoPoints.push_back(geoVerts[(i + 1) % numVerts]);
+                    }
+                    //does not alpha, and does not save nor reload on "save/load", and no texture
+                    SDL_SetTextureBlendMode(gObj->GetTexturePtr(), SDL_BLENDMODE_BLEND);
+                    SDL_RenderGeometry(currRenderer, NULL, geoPoints.data(), geoPoints.size(), NULL, 0);
+                } else {
+                    SDL_FRect texture_rect;
+                    texture_rect.x = (playing) ? MeterToPixel(gObj->objBody->GetPosition().x - (gObj->width / 2) - cameraPos.x) : MeterToPixel(gObj->objBodyDef.position.x - (gObj->width / 2) - cameraPos.x);
+                    texture_rect.y = (playing) ? MeterToPixel(gObj->objBody->GetPosition().y - (gObj->height / 2) - cameraPos.y) : MeterToPixel(gObj->objBodyDef.position.y - (gObj->height / 2) - cameraPos.y);
+                    texture_rect.w = MeterToPixel(gObj->width);
+                    texture_rect.h = MeterToPixel(gObj->height);
+                    float rotation = (playing) ? gObj->objBody->GetAngle() : gObj->objBodyDef.angle;
+                    rotation *= (180 /b2_pi);
+                    SDL_SetTextureColorMod(gObj->GetTexturePtr(), gObj->color.r, gObj->color.g, gObj->color.b);
+                    SDL_SetTextureAlphaMod(gObj->GetTexturePtr(), gObj->color.a);
+                    SDL_RenderTextureRotated(currRenderer, gObj->GetTexturePtr(), NULL, &texture_rect, rotation, NULL, SDL_FlipMode::SDL_FLIP_NONE);
+                }
             }
             j++;
         }
@@ -349,6 +411,29 @@ namespace EngineManager {
             newObj->SetUpdateFunction(DefaultUpdates::GetFunctionFromNumber(std::stoi(gObjPieces[14])));
             newObj->layer = std::stoi(gObjPieces[13]);
             newObj->color = SDL_Color(std::stoi(gObjPieces[5]), std::stoi(gObjPieces[6]), std::stoi(gObjPieces[7]), std::stoi(gObjPieces[8]));
+
+            //set up verts
+            if (newObj->objShape == GameObject::Polygon) {
+                newObj->verts.clear();
+                std::string vertInput;
+                std::getline(srcFile, vertInput);
+                size_t vertLineIndex = 0;
+                std::string gObjVertPiece = "";
+                std::vector<std::string> gObjVertPieces = std::vector<std::string>();
+                while ((vertLineIndex = vertInput.find(':')) != std::string::npos) {
+                    gObjVertPiece = vertInput.substr(0, vertLineIndex);
+                    gObjVertPieces.push_back(gObjVertPiece);
+                    vertInput.erase(0, vertLineIndex + 1);
+                }
+                std::cout << std::stof(gObjVertPieces.at(3)) << std::endl;
+                for (size_t i = 0; i < gObjVertPieces.size(); i++) {
+                    b2Vec2 newVert = b2Vec2();
+                    newVert.x = std::stof(gObjVertPieces.at(i));
+                    i++;
+                    newVert.y = std::stof(gObjVertPieces.at(i));
+                    newObj->verts.push_back(newVert);
+                }
+            }
             AddToViewPort(newObj);
         }
         srcFile.close();
@@ -378,6 +463,14 @@ namespace EngineManager {
                 newLine += gObj->GetFilePath();
                 dstFile << newLine << std::endl;
                 newLine = "";
+                if (gObj->objShape == GameObject::Polygon) {
+                    for (b2Vec2 vertex : gObj->verts) {
+                        newLine += std::to_string(vertex.x) + ":";
+                        newLine += std::to_string(vertex.y) + ":";
+                    }
+                    dstFile << newLine << std::endl;
+                    newLine = "";
+                }
             }
         }
         dstFile.close();
