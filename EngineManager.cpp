@@ -195,6 +195,16 @@ namespace EngineManager {
             }
             playing = false;
         }
+        
+        //handles building the game
+        if (ImGui::Button("Build")) {
+            std::string buildPath = GetFolderDialogBox();
+            std::string buildPathAndFile[2] = {};
+            size_t lastSlash = buildPath.find_last_of('\\');
+            buildPathAndFile[0] = buildPath.substr(0, lastSlash);
+            buildPathAndFile[1] = buildPath.substr(lastSlash + 1);
+            BuildGame(buildPathAndFile[0], buildPathAndFile[1]);
+        }
         ImGui::End();
     }
     
@@ -379,6 +389,40 @@ namespace EngineManager {
     b2Vec2 VectorMeterToPixel(b2Vec2 meterVec) { return b2Vec2(meterVec.x * 50, meterVec.y * 50); }
     b2Vec2 VectorPixelToMeter(b2Vec2 pixelVec) { return b2Vec2(pixelVec.x * 0.02f, pixelVec.y * 0.02f); }
 
+    //funtions for building the game
+    bool BuildGame(std::string buildPath, std::string buildName) {
+        if (!CopyMyFile("SDL3.dll", buildPath)) return false;
+        if (!CopyMyFile("SDL3_image.dll", buildPath)) return false;
+        std::filesystem::remove_all(buildPath + "/resources");
+        std::filesystem::create_directories(buildPath + "/resources");
+        std::filesystem::create_directories(buildPath + "/build");
+        std::filesystem::copy("resources/", buildPath + "/resources/");
+        SaveFile(buildPath + "/main.smol");
+        std::string cmakeCMD = "cmake --build " + buildPath + "/build --config Debug";
+        //std::string pathCMD = "cd " + buildPath;
+        std::string configCMD = "cmake -A Win32 -B " + buildPath + "/build -S ./BuildCode";
+        //system(pathCMD.c_str());
+        system(configCMD.c_str());
+        system(cmakeCMD.c_str());
+        std::filesystem::remove(buildPath + "/" + buildName);
+        std::filesystem::copy_file(buildPath + "/build/Debug/Engine1.exe", buildPath + "/" + buildName);
+        std::filesystem::remove_all(buildPath + "/build");
+        return true;
+    }
+    bool CopyMyFile(std::string srcPath, std::string dstPath) {
+        std::filesystem::path source = srcPath;
+        std::filesystem::path destination = dstPath;
+        auto target = destination / source.filename();
+        try {
+            std::filesystem::create_directories(destination);
+            std::filesystem::copy_file(source, target, std::filesystem::copy_options::overwrite_existing);
+        } catch (std::exception& e) {
+            std::cout << e.what();
+            return false;
+        }
+        return true;
+    }
+
     //These are all the functions that handle saving and loading files in/out of the engine
     bool LoadFile(std::string path) {
         //first, load the file
@@ -425,7 +469,6 @@ namespace EngineManager {
                     gObjVertPieces.push_back(gObjVertPiece);
                     vertInput.erase(0, vertLineIndex + 1);
                 }
-                std::cout << std::stof(gObjVertPieces.at(3)) << std::endl;
                 for (size_t i = 0; i < gObjVertPieces.size(); i++) {
                     b2Vec2 newVert = b2Vec2();
                     newVert.x = std::stof(gObjVertPieces.at(i));
@@ -529,6 +572,36 @@ namespace EngineManager {
             std::ofstream dstFile(filePath);
             finalPath = filePath;
             dstFile.close();
+            pShellItem->Release();
+        }
+        pFileSave->Release();
+        CoUninitialize();
+        return finalPath;
+    }
+    std::string GetFolderDialogBox() {
+        COMDLG_FILTERSPEC ComDlgFS[1] = {{L"Executable (*.exe)", L"*.exe"}};
+        IFileSaveDialog* pFileSave = nullptr;
+        IShellItem* pShellItem = nullptr;
+        wchar_t* ppszName = nullptr;
+        std::string finalPath = "";
+
+        CoInitialize(NULL);
+        CoCreateInstance(CLSID_FileSaveDialog, NULL, CLSCTX_INPROC_SERVER, IID_IFileSaveDialog, (void**)(&pFileSave));
+        pFileSave->SetFileTypes(1, ComDlgFS);
+        pFileSave->Show(0);
+        pFileSave->GetResult(&pShellItem);
+        if (pShellItem != nullptr) {
+            pShellItem->GetDisplayName(SIGDN_FILESYSPATH,&ppszName);
+            size_t origsize = wcslen(ppszName) + 1;
+            size_t convertedChars = 0;
+            const size_t newsize = origsize * 2;
+            char* nstring = new char[newsize];
+            wcstombs_s(&convertedChars, nstring, newsize, ppszName, _TRUNCATE);
+            std::string filePath(nstring);
+            if (filePath.substr(filePath.length() - 5) != ".exe") filePath += ".exe";
+            //std::ofstream dstFile(filePath);
+            finalPath = filePath;
+            //dstFile.close();
             pShellItem->Release();
         }
         pFileSave->Release();
