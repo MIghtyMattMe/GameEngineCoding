@@ -1,6 +1,5 @@
 #include "EngineManager.h"
 #include "Brush.h"
-#include "Inspector.h"
 
 std::vector<SDL_Scancode> KeyData::playModeInput = std::vector<SDL_Scancode>();
 Uint64 KeyData::keysPressed = 0;
@@ -28,7 +27,6 @@ namespace EngineManager {
 
     //Initialized the engine by creating out brush (and other stuff eventually)
     void InitEngine(SDL_Renderer* renderer) {
-        brush = new Brush();
         currRenderer = renderer;
         for (int i = 0; i < 8; i++) {
             layeredObjectsToLoad.push_back(std::vector<GameObject*>());
@@ -56,227 +54,20 @@ namespace EngineManager {
         selectedObject = NULL;
         currRenderer = NULL;
     }
-
-    //Main Render Loop for our engine interface
-    void RenderEngine() {
-        MakeTools();
-        MakeInspector();
-        MakeControlBoard();
-    }
-
-    //makes the tool window and sets up its logic
-    void MakeTools() {
-        ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0, 0, 0, 1));
-        ImGui::Begin("EngineTools");
-        ImGui::PopStyleColor();
-        if (ImGui::Button("Circle")) {
-            brush->setType(Brush::Type::Circle);
-        }
-        ImGui::SameLine();
-        if (ImGui::Button("Square")) {
-            brush->setType(Brush::Type::Square);
-        }
-        if (ImGui::Button("Triangle")) {
-            brush->setType(Brush::Type::Triangle);
-        }
-        ImGui::SameLine();
-        if (ImGui::Button("Custom")) {
-            brush->setType(Brush::Type::Custom);
-        }
-        if (ImGui::Button("Player")) {
-            brush->setType(Brush::Type::Player);
-        }
-        ImGui::End();
-    }
-    //creates the inspector window and sets up its logic
-    void MakeInspector() {
-        ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0, 0, 0, 1));
-        ImGui::Begin("Object Inspector");
-        ImGui::PopStyleColor();
-        if (selectedObject != nullptr) {
-            //display data if we are playing, but if not, data is editable
-            if (playing) {
-                Inspector::BuildPlayModeInspector(selectedObject);
-            } else {
-                //std::cout << std::to_string(selectedObject->layer) << std::endl;
-                Inspector::BuildNormalInspector(selectedObject, &layeredObjectsToLoad[0], currRenderer);
-                //std::cout << std::to_string(selectedObject->layer) << std::endl;
-                if (ImGui::Button("Delete")) {
-                    for (size_t i = 0; i < layeredObjectsToLoad[selectedObject->layer].size(); i++) {
-                        if (layeredObjectsToLoad[selectedObject->layer][i] == selectedObject) {
-                            SDL_Log("Deleted");
-                            //std::cout << std::to_string(layeredObjectsToLoad[selectedObject->layer].size()) << std::endl;
-                            layeredObjectsToLoad[selectedObject->layer].erase(layeredObjectsToLoad[selectedObject->layer].begin() + i);
-                            //std::cout << std::to_string(layeredObjectsToLoad[selectedObject->layer].size()) << std::endl;
-                            delete selectedObject;
-                            selectedObject = nullptr;
-                            break;
-                        }
-                    }
-                }
-            }
-        } else {
-            ImGui::Text("No selected object!");
-            ImGui::Text("Right-Click on an object.");
-        }
-        ImGui::End();
-    }
-    //makes the control board for running the game and editing configurations
-    void MakeControlBoard() {
-        ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0, 0, 0, 1));
-        ImGui::Begin("Control Board");
-        ImGui::PopStyleColor();
-
-        //Handles loading and saving the game engine
-        if (ImGui::Button("Save") && !playing) {
-            std::string savePath = CreateSaveDialogBox();
-            if (!savePath.empty()) {
-                if (!SaveFile(savePath)) {
-                    SDL_Log("Failed to Save");
-                }
-            } else {
-                SDL_Log("Failed to find Save File");
-            }
-        }
-        ImGui::SameLine();
-        //when Stop is hit, read all gameObjects from saved vector and delete memory
-        if (ImGui::Button("Load") && !playing) {
-            selectedObject = nullptr;
-            std::string loadPath = CreateLoadDialogBox();
-            if (!loadPath.empty()) {
-                if (!LoadFile(loadPath)) {
-                    SDL_Log("Failed to Load");
-                }
-            } else {
-                SDL_Log("Failed to find Load File");
-            }
-        }
-
-        //Handles the play and Stop functionality
-        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.4f, 0.4f, 0.7f, 1));
-        if (!playing) ImGui::PopStyleColor();
-        bool playJustHit = false;
-        //when Play is hit, write all gameObjects to a vector
-        if (ImGui::Button("Play")) {
-            selectedObject = nullptr;
-            if (!playing) {
-                playJustHit = true;
-                for (Uint8 i = 0; i < layeredObjectsToLoad.size(); i++) {
-                    for (GameObject* &gObj : layeredObjectsToLoad[i]) {
-                        layeredObjectsSaved[i].push_back(gObj->Clone(currRenderer));
-                        gObj->CreateAndPlaceBody(phyWorld);
-                    }
-                }
-            }
-            playing = true;
-        }
-        if (playing && !playJustHit) ImGui::PopStyleColor();
-        ImGui::SameLine();
-        //when Stop is hit, read all gameObjects from saved vector and delete memory
-        if (ImGui::Button("Stop")) {
-            selectedObject = nullptr;
-            if (playing) {
-                for (Uint8 i = 0; i < layeredObjectsToLoad.size(); i++) {
-                    //destroy our game world
-                    for (GameObject* &gObj : layeredObjectsToLoad[i]) {
-                        if (gObj->objBody != nullptr) phyWorld->DestroyBody(gObj->objBody);
-                        delete gObj; //This delete's the gomeObjects
-                    }
-                    layeredObjectsToLoad[i].clear(); //This delete's the pointers
-
-                    //rebuild the world using saved objects
-                    for (GameObject* &gObj : layeredObjectsSaved[i]) {
-                        layeredObjectsToLoad[i].push_back(gObj->Clone(currRenderer));
-                        delete gObj;
-                    }
-                    layeredObjectsSaved[i].clear();
-                }
-            }
-            playing = false;
-        }
-        
-        //handles building the game
-        if (ImGui::Button("Build")) {
-            BuildGame(GetFolderDialogBox());
-        }
-        ImGui::End();
-    }
-    
-    //Logic for Selection of GameObjects
-    void SelectObject(GameObject* clickedObj) {
-        selectedObject = clickedObj;
-    }
-    GameObject* FindSelectedObject(b2Vec2 clickedPos) {
-        clickedPos += cameraPos;
-        for (std::vector<GameObject*> &layer : layeredObjectsToLoad) {
-            for (GameObject* &gObj : layer) {
-                if (gObj->objShape == GameObject::Polygon) {
-                    //check the verts
-                    const int numVerts = gObj->verts.size();
-                    b2Vec2 bodyPosition = (playing) ? gObj->objBody->GetPosition() : gObj->objBodyDef.position;
-                    int intersections = 0;
-                    for (Uint8 i = 0; i < numVerts; i++) {
-                        //SDL_FPoint u = SDL_FPoint(clickedPos.x - gObj->verts[i].x, clickedPos.y - gObj->verts[i].y);
-                        b2Vec2 vert1 = b2Vec2(((gObj->verts[i].x * gObj->width) + bodyPosition.x), ((gObj->verts[i].y * gObj->height) + bodyPosition.y));
-                        b2Vec2 vert2 = b2Vec2(((gObj->verts[(i + 1) % numVerts].x * gObj->width) + bodyPosition.x), ((gObj->verts[(i + 1) % numVerts].y * gObj->height) + bodyPosition.y));
-                        b2Vec2 leftRay = b2Vec2(clickedPos.x - 100, clickedPos.y);
-                        bool a = ((leftRay.y - vert1.y) * (clickedPos.x - vert1.x)) > ((clickedPos.y - vert1.y) * (leftRay.x - vert1.x));
-                        bool b = ((leftRay.y - vert2.y) * (clickedPos.x - vert2.x)) > ((clickedPos.y - vert2.y) * (leftRay.x - vert2.x));
-                        bool c = ((vert2.y - vert1.y) * (clickedPos.x - vert1.x)) > ((clickedPos.y - vert1.y) * (vert2.x - vert1.x));
-                        bool d = ((vert2.y - vert1.y) * (leftRay.x - vert1.x)) > ((leftRay.y - vert1.y) * (vert2.x - vert1.x));
-                        if (a != b && c != d) {
-                            intersections++;
-                        }
-                    }
-                    if (intersections % 2) {
-                        return gObj;
-                    }
-                    
-                } else {
-                    //find if the clicked position is on the object's rectangle
-                    float leftLimit = (playing) ? gObj->objBody->GetPosition().x - (gObj->width / 2) : gObj->objBodyDef.position.x - (gObj->width / 2);
-                    float rightLimit = (playing) ? gObj->objBody->GetPosition().x + (gObj->width / 2) : gObj->objBodyDef.position.x + (gObj->width / 2);
-                    float upLimit = (playing) ? gObj->objBody->GetPosition().y - (gObj->height / 2) : gObj->objBodyDef.position.y - (gObj->height / 2);
-                    float downLimit = (playing) ? gObj->objBody->GetPosition().y + (gObj->height / 2) : gObj->objBodyDef.position.y + (gObj->height / 2);
-                    if (clickedPos.x < rightLimit && 
-                    clickedPos.x > leftLimit &&
-                    clickedPos.y < downLimit &&
-                    clickedPos.y > upLimit) {
-                        return gObj;
-                    }
+    void StartPlay() {
+        if (!playing) {
+            for (Uint8 i = 0; i < layeredObjectsToLoad.size(); i++) {
+                for (GameObject* &gObj : layeredObjectsToLoad[i]) {
+                    gObj->CreateAndPlaceBody(phyWorld);
                 }
             }
         }
-        return nullptr;
+        playing = true;
     }
 
     //These take an existing gameObject (or create a new one) and adds it to the list of objects to be rendered
     void AddToViewPort(GameObject* gameObject) {
         layeredObjectsToLoad[gameObject->layer].push_back(gameObject);
-    }
-    void AddToViewPort(b2Vec2 targetPos, float targetWidth, float targetHeight, std::string textureFile) {
-        GameObject* newObj = nullptr;
-        b2BodyDef newBody;
-        newBody.position.Set(targetPos.x + cameraPos.x, targetPos.y + cameraPos.y);
-        newBody.type = b2_staticBody;
-        if (textureFile.empty()) {
-            if (brush->getTextureFile().empty()) {
-                SDL_Log("No brush texture was chosen!");
-                return;
-            }
-            newObj = new GameObject(currRenderer, newBody, brush->getType(), targetWidth, targetHeight, brush->getTextureFile());
-            if (brush->getType() == Brush::Player) {
-                newObj->SetUpdateFunction(DefaultUpdates::MovePlayer);
-                newObj->objBodyDef.type = b2_dynamicBody;
-                newObj->objBodyDef.fixedRotation = true;
-            }
-        } else {
-            newObj = new GameObject(currRenderer, newBody, 0, targetWidth, targetHeight, textureFile);
-        }
-        if (playing) {
-            newObj->CreateAndPlaceBody(phyWorld);
-        }
-        layeredObjectsToLoad[newObj->layer].push_back(newObj);
     }
     //handles the actual drawing of textures
     void DrawViewPort() {
@@ -366,9 +157,6 @@ namespace EngineManager {
     b2Vec2 GetCameraPosition() {
         return cameraPos;
     }
-    void SetCameraPosition(b2Vec2 newPos) {
-        cameraPos = newPos;
-    }
 
     //these are used for physics world creation in main.cpp
     b2Vec2 GetGravityVector() {
@@ -382,30 +170,6 @@ namespace EngineManager {
     float PixToMeter(float pixels) { return (pixels * 0.02f); }
     b2Vec2 VectorMeterToPixel(b2Vec2 meterVec) { return b2Vec2(meterVec.x * 50, meterVec.y * 50); }
     b2Vec2 VectorPixelToMeter(b2Vec2 pixelVec) { return b2Vec2(pixelVec.x * 0.02f, pixelVec.y * 0.02f); }
-
-    //funtions for building the game
-    bool BuildGame(std::string buildPath) {
-        if (!CopyMyFile("SDL3.dll", buildPath)) return false;
-        if (!CopyMyFile("SDL3_image.dll", buildPath)) return false;
-        std::filesystem::remove_all(buildPath + "/resources");
-        std::filesystem::create_directories(buildPath + "/resources");
-        std::filesystem::copy("resources/", buildPath + "/resources/");
-        SaveFile(buildPath + "/main.smol");
-        return true;
-    }
-    bool CopyMyFile(std::string srcPath, std::string dstPath) {
-        std::filesystem::path source = srcPath;
-        std::filesystem::path destination = dstPath;
-        auto target = destination / source.filename();
-        try {
-            std::filesystem::create_directories(destination);
-            std::filesystem::copy_file(source, target, std::filesystem::copy_options::overwrite_existing);
-        } catch (std::exception& e) {
-            std::cout << e.what();
-            return false;
-        }
-        return true;
-    }
 
     //These are all the functions that handle saving and loading files in/out of the engine
     bool LoadFile(std::string path) {
@@ -466,131 +230,5 @@ namespace EngineManager {
         }
         srcFile.close();
         return true;
-    }
-    bool SaveFile(std::string path) {
-        //write all the gameObjects to the file, each terminated by new line (\n)
-        std::ofstream dstFile(path, std::ofstream::trunc);
-        std::string newLine = "";
-        for (std::vector<GameObject*> &layer : layeredObjectsToLoad) {
-            for (GameObject* &gObj : layer) {
-                newLine += std::to_string(gObj->objBodyDef.position.x) + ":";
-                newLine += std::to_string(gObj->objBodyDef.position.y) + ":";
-                newLine += std::to_string(gObj->objBodyDef.angle) + ":";
-                newLine += std::to_string(gObj->objBodyDef.type) + ":";
-                newLine += std::to_string(gObj->objShape) + ":";
-                newLine += std::to_string(gObj->color.r) + ":";
-                newLine += std::to_string(gObj->color.g) + ":";
-                newLine += std::to_string(gObj->color.b) + ":";
-                newLine += std::to_string(gObj->color.a) + ":";
-                newLine += std::to_string(gObj->width) + ":";
-                newLine += std::to_string(gObj->height) + ":";
-                newLine += std::to_string(gObj->density) + ":";
-                newLine += std::to_string(gObj->friction) + ":";
-                newLine += std::to_string(gObj->layer) + ":";
-                newLine += std::to_string(DefaultUpdates::GetFunctionNumber(gObj->updateFunction)) + ":";
-                newLine += gObj->GetFilePath();
-                dstFile << newLine << std::endl;
-                newLine = "";
-                if (gObj->objShape == GameObject::Polygon) {
-                    for (b2Vec2 vertex : gObj->verts) {
-                        newLine += std::to_string(vertex.x) + ":";
-                        newLine += std::to_string(vertex.y) + ":";
-                    }
-                    dstFile << newLine << std::endl;
-                    newLine = "";
-                }
-            }
-        }
-        dstFile.close();
-        return true;
-    }
-    //Code largely copied from post: https://cplusplus.com/forum/windows/275617/ made by freddie1
-    //This opens the Windows file explorer boxes for users to navigate
-    std::string CreateLoadDialogBox() {
-        COMDLG_FILTERSPEC ComDlgFS[1] = {{L"Smol GameEngine (*.smol)", L"*.smol"}};
-        IFileOpenDialog* pFileOpen = nullptr;
-        IShellItem* pShellItem = nullptr;
-        wchar_t* ppszName = nullptr;
-        std::string finalPath = "";
-
-        CoInitialize(NULL);
-        CoCreateInstance(CLSID_FileOpenDialog, NULL, CLSCTX_INPROC_SERVER, IID_IFileOpenDialog, (void**)(&pFileOpen));
-        pFileOpen->SetFileTypes(1, ComDlgFS);
-        pFileOpen->Show(0);
-        pFileOpen->GetResult(&pShellItem);
-        if (pShellItem != nullptr) {
-            pShellItem->GetDisplayName(SIGDN_FILESYSPATH,&ppszName);
-            size_t origsize = wcslen(ppszName) + 1;
-            size_t convertedChars = 0;
-            const size_t newsize = origsize * 2;
-            char* nstring = new char[newsize];
-            wcstombs_s(&convertedChars, nstring, newsize, ppszName, _TRUNCATE);
-            std::string filePath(nstring);
-            finalPath = filePath;
-            pShellItem->Release();
-        }
-        pFileOpen->Release();    
-        CoUninitialize();
-        return finalPath;
-    }
-    std::string CreateSaveDialogBox() {
-        COMDLG_FILTERSPEC ComDlgFS[1] = {{L"Smol GameEngine (*.smol)", L"*.smol"}};
-        IFileSaveDialog* pFileSave = nullptr;
-        IShellItem* pShellItem = nullptr;
-        wchar_t* ppszName = nullptr;
-        std::string finalPath = "";
-
-        CoInitialize(NULL);
-        CoCreateInstance(CLSID_FileSaveDialog, NULL, CLSCTX_INPROC_SERVER, IID_IFileSaveDialog, (void**)(&pFileSave));
-        pFileSave->SetFileTypes(1, ComDlgFS);
-        pFileSave->Show(0);
-        pFileSave->GetResult(&pShellItem);
-        if (pShellItem != nullptr) {
-            pShellItem->GetDisplayName(SIGDN_FILESYSPATH,&ppszName);
-            size_t origsize = wcslen(ppszName) + 1;
-            size_t convertedChars = 0;
-            const size_t newsize = origsize * 2;
-            char* nstring = new char[newsize];
-            wcstombs_s(&convertedChars, nstring, newsize, ppszName, _TRUNCATE);
-            std::string filePath(nstring);
-            if (filePath.substr(filePath.length() - 5) != ".smol") filePath += ".smol";
-            std::ofstream dstFile(filePath);
-            finalPath = filePath;
-            dstFile.close();
-            pShellItem->Release();
-        }
-        pFileSave->Release();
-        CoUninitialize();
-        return finalPath;
-    }
-    std::string GetFolderDialogBox() {
-        COMDLG_FILTERSPEC ComDlgFS[1] = {{L"Executable (*.exe)", L"*.exe"}};
-        IFileSaveDialog* pFileSave = nullptr;
-        IShellItem* pShellItem = nullptr;
-        wchar_t* ppszName = nullptr;
-        std::string finalPath = "";
-
-        CoInitialize(NULL);
-        CoCreateInstance(CLSID_FileSaveDialog, NULL, CLSCTX_INPROC_SERVER, IID_IFileSaveDialog, (void**)(&pFileSave));
-        pFileSave->SetFileTypes(1, ComDlgFS);
-        pFileSave->Show(0);
-        pFileSave->GetFolder(&pShellItem);
-        if (pShellItem != nullptr) {
-            pShellItem->GetDisplayName(SIGDN_FILESYSPATH,&ppszName);
-            size_t origsize = wcslen(ppszName) + 1;
-            size_t convertedChars = 0;
-            const size_t newsize = origsize * 2;
-            char* nstring = new char[newsize];
-            wcstombs_s(&convertedChars, nstring, newsize, ppszName, _TRUNCATE);
-            std::string filePath(nstring);
-            //if (filePath.substr(filePath.length() - 5) != ".exe") filePath += ".exe";
-            std::ofstream dstFile(filePath);
-            finalPath = filePath;
-            dstFile.close();
-            pShellItem->Release();
-        }
-        pFileSave->Release();
-        CoUninitialize();
-        return finalPath;
     }
 }
