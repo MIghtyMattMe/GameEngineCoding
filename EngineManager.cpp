@@ -298,16 +298,21 @@ namespace EngineManager {
                     SDL_Vertex geoVerts[8];
                     const int numVerts = gObj->verts.size();
                     b2Vec2 bodyPosition = (playing) ? gObj->objBody->GetPosition() : gObj->objBodyDef.position;
+                    float rotation = (playing) ? gObj->objBody->GetAngle() : gObj->objBodyDef.angle;
                     SDL_FPoint centeroid = SDL_FPoint(0, 0);
                     for (Uint8 i = 0; i < numVerts; i++) {
-                        geoVerts[i].position.x = MeterToPixel((gObj->verts[i].x * gObj->width) + bodyPosition.x - cameraPos.x);
-                        geoVerts[i].position.y = MeterToPixel((gObj->verts[i].y * gObj->height) + bodyPosition.y - cameraPos.y);
+                        float posX = gObj->verts[i].x * gObj->width;
+                        float posY = gObj->verts[i].y * gObj->height;
+                        float posXRot = (posX * cos(rotation) - posY * sin(rotation)) + bodyPosition.x - cameraPos.x;
+                        float posYRot = (posX * sin(rotation) + posY * cos(rotation)) + bodyPosition.y - cameraPos.y;
+                        geoVerts[i].position.x = MeterToPixel(posXRot);
+                        geoVerts[i].position.y = MeterToPixel(posYRot);
                         geoVerts[i].color.r = gObj->color.r / 255.0f;
                         geoVerts[i].color.g = gObj->color.g / 255.0f;
                         geoVerts[i].color.b = gObj->color.b / 255.0f;
                         geoVerts[i].color.a = gObj->color.a / 255.0f;
-                        centeroid.x += (gObj->verts[i].x * gObj->width) + bodyPosition.x - cameraPos.x;
-                        centeroid.y += (gObj->verts[i].y * gObj->height) + bodyPosition.y - cameraPos.y;
+                        centeroid.x += posXRot;
+                        centeroid.y += posYRot;
                     }
                     centeroid.x = MeterToPixel(centeroid.x / numVerts);
                     centeroid.y = MeterToPixel(centeroid.y / numVerts);
