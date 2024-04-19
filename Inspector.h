@@ -116,7 +116,7 @@ namespace Inspector {
                     if (*currObjects[i][k] == *selectedObject) {
                         currObjects[selectedObject->layer].push_back(selectedObject);
                         //std::cout << "Moved to Layer: " + std::to_string(selectedObject->layer) + " - New Layer Size: " + std::to_string(currObjects[selectedObject->layer].size()) << std::endl;
-                        selectedObject->SetTextureFromeFile(renderer, selectedObject->GetFilePath());
+                        selectedObject->SetTextureFromFile(renderer, selectedObject->GetFilePath());
                         currObjects[i].erase(currObjects[i].begin() + k);
                         found = true;
                         break;

@@ -8,7 +8,7 @@ GameObject::GameObject(SDL_Renderer* renderer, b2BodyDef targetBody, int shape, 
     density = targetDensity;
     friction = targetFriction;
     objShape = (shape <= 3) ? (Shape) shape : Polygon;
-    SetTextureFromFile(renderer, textureFile);
+    SetTextureFromeFile(renderer, textureFile);
     SetUpdateFunction(DefaultUpdates::Empty);
 }
 GameObject::~GameObject() {
@@ -22,7 +22,7 @@ GameObject* GameObject::Clone(SDL_Renderer* targetRenderer) {
     newBody.type = objBodyDef.type;
     newBody.angle = objBodyDef.angle;
     GameObject* newObj = new GameObject(targetRenderer, newBody, objShape, width, height, GetFilePath());
-    newObj->SetTextureFromFile(targetRenderer, newObj->GetFilePath());
+    newObj->SetTextureFromeFile(targetRenderer, newObj->GetFilePath());
     void (*objUpdateFunction)(void* gObj) = GetUpdateFunction();
     newObj->SetUpdateFunction(objUpdateFunction);
     newObj->layer = layer;
@@ -95,7 +95,7 @@ void GameObject::CreateAndPlaceBody(b2World* phyWorld) {
     }
 }
 
-void GameObject::SetTextureFromFile(SDL_Renderer* renderer, std::string textureFile) {
+void GameObject::SetTextureFromeFile(SDL_Renderer* renderer, std::string textureFile) {
     textureFilePath = textureFile;
     targetTexture = IMG_LoadTexture(renderer, &textureFile[0]);
 }
