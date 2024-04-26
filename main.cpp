@@ -8,18 +8,22 @@
 #include <iostream>
 #include <string>
 
-// Main code
-int main(int argc, char* argv[])
-{
+SDL_Window* mainWindow = nullptr;
+SDL_Renderer* mainRenderer = nullptr;
+b2World* phyWorld = nullptr;
+
+bool SetUp() {
     //init SDL windows and rendering system
-    SDL_Init(SDL_INIT_CAMERA | SDL_INIT_EVENTS | SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_GAMEPAD);
-    SDL_Window* mainWindow = SDL_CreateWindow(
+    if (SDL_Init(SDL_INIT_CAMERA | SDL_INIT_EVENTS | SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_GAMEPAD)) return false;
+    mainWindow = SDL_CreateWindow(
         "mainWindow",
         1280,
         720,
         0//SDL_WINDOW_RESIZABLE
     );
-    SDL_Renderer* mainRenderer = SDL_CreateRenderer(mainWindow, nullptr, SDL_RENDERER_PRESENTVSYNC | SDL_RENDERER_ACCELERATED);
+    if (!mainWindow) return false;
+    mainRenderer = SDL_CreateRenderer(mainWindow, nullptr, SDL_RENDERER_PRESENTVSYNC | SDL_RENDERER_ACCELERATED);
+    if (!mainRenderer) return false;
 
     //init ImGui and connect it to SDL
     ImGui::CreateContext();
@@ -30,8 +34,53 @@ int main(int argc, char* argv[])
     //init Engine
     EngineManager::InitEngine(mainRenderer);
     //create and set the physics world for the engine manager
-    b2World phyWorld(EngineManager::GetGravityVector());
-    EngineManager::SetPhyWorld(&phyWorld);
+    phyWorld = new b2World(EngineManager::GetGravityVector());
+    EngineManager::SetPhyWorld(phyWorld);
+    return true;
+}
+
+void TearDown() {
+    //shutdown and close all our things
+    EngineManager::CloseEngine();
+    ImGui_ImplSDLRenderer3_Shutdown();
+    ImGui_ImplSDL3_Shutdown();
+    ImGui::DestroyContext();
+    SDL_DestroyRenderer(mainRenderer);
+    SDL_DestroyWindow(mainWindow);
+    phyWorld = nullptr;
+    SDL_Quit();
+}
+
+bool RenderLoop() {
+    EngineManager::UpdateGameObjects();
+    KeyData::playModeInput.clear();
+    KeyData::lastFrameKeys = KeyData::keysPressed;
+
+    ImGui_ImplSDLRenderer3_NewFrame();
+    ImGui_ImplSDL3_NewFrame();
+    ImGui::NewFrame();
+
+    //Add our engine overlay and ImGui stuff to the render stack
+    EngineManager::RenderEngine();
+    ImGui::Render();
+
+    //set background color of renderer and fill it
+    if (SDL_SetRenderDrawColor(mainRenderer, 20, 20, 20, 255)) return false;
+    if (SDL_RenderClear(mainRenderer)) return false;
+
+    //Draw our gameObjects and ImGui Overlay from the renderStack
+    EngineManager::DrawViewPort();
+    ImGui_ImplSDLRenderer3_RenderDrawData(ImGui::GetDrawData());
+    return true;
+}
+
+// Main code
+int main(int argc, char* argv[])
+{
+    if (!SetUp()) {
+        std::cout << "Engine Failed SetUp" << std::endl;
+        return -1;
+    }
 
     bool done = false;
     bool mouseMiddleDown = false; //This is for knowing when to move the camera
@@ -41,25 +90,10 @@ int main(int argc, char* argv[])
     while (!done)
     {
 
-        EngineManager::UpdateGameObjects();
-        KeyData::playModeInput.clear();
-        KeyData::lastFrameKeys = KeyData::keysPressed;
-
-        ImGui_ImplSDLRenderer3_NewFrame();
-        ImGui_ImplSDL3_NewFrame();
-        ImGui::NewFrame();
-
-        //Add our engine overlay and ImGui stuff to the render stack
-        EngineManager::RenderEngine();
-        ImGui::Render();
-
-        //set background color of renderer and fill it
-        SDL_SetRenderDrawColor(mainRenderer, 20, 20, 20, 255);
-        SDL_RenderClear(mainRenderer);
-
-        //Draw our gameObjects and ImGui Overlay from the renderstack
-        EngineManager::DrawViewPort();
-        ImGui_ImplSDLRenderer3_RenderDrawData(ImGui::GetDrawData());
+        if (!RenderLoop()) {
+            std::cout << "Render Loop Error" << std::endl;
+            return -1;
+        }
 
         // Poll and handle messages (inputs, window resize, etc.)
         SDL_Event event;
@@ -110,14 +144,7 @@ int main(int argc, char* argv[])
         SDL_RenderPresent(mainRenderer);
     }
 
-    //shutdown and close all our things
-    EngineManager::CloseEngine();
-    ImGui_ImplSDLRenderer3_Shutdown();
-    ImGui_ImplSDL3_Shutdown();
-    ImGui::DestroyContext();
-    SDL_DestroyRenderer(mainRenderer);
-    SDL_DestroyWindow(mainWindow);
-    SDL_Quit();
+    TearDown();
 
     return 0;
 }

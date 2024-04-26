@@ -1,5 +1,5 @@
 #pragma once
-//Custom scritps
+//Custom scripts
 #include "Brush.h"
 #include "GameObject.h"
 
@@ -13,7 +13,7 @@
 
 namespace Inspector {
     const char* bodyTypes[3] = {"Static", "Dynamic", "Kinematic"};
-    const char* bodyShapes[4] = {"None", "Ecllipse", "Box", "Polygon"};
+    const char* bodyShapes[4] = {"None", "Ellipse", "Box", "Polygon"};
 
     void BuildPhysicsBodySelector(GameObject* selectedObject) {
         const char* currentBodyType;
@@ -64,7 +64,7 @@ namespace Inspector {
                 currentBodyShape = "None";
                 break;
             case 1:
-                currentBodyShape = "Ecllipse";
+                currentBodyShape = "Ellipse";
                 break;
             case 2:
                 currentBodyShape = "Box";

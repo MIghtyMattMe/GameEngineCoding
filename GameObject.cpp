@@ -42,7 +42,7 @@ void GameObject::CreateAndPlaceBody(b2World* phyWorld) {
         boxFixtureDef.filter.categoryBits = (1 << layer);
         boxFixtureDef.filter.maskBits = (1 << layer);
         objBody->CreateFixture(&boxFixtureDef);
-    } else if (objShape == Ecllipse) {
+    } else if (objShape == Ellipse) {
         const int STEPS = 32;
         float a = (width >= height) ? width / 2 : height / 2;
         float b = (width >= height) ? height / 2 : width / 2;

@@ -12,10 +12,10 @@ class GameObject {
         GameObject(SDL_Renderer* renderer, b2BodyDef targetBody, int shape=3, float targetWidth=1.0f, float targetHeight=1.0f, std::string textureFile="",  float targetDensity=1.0f, float targetFriction=0.3f);
         ~GameObject();
 
-        //variables of a gameobject
+        //variables of a gameObject
         b2BodyDef objBodyDef;
         b2Body* objBody = nullptr;
-        enum Shape {None = 0, Ecllipse = 1, Box = 2, Polygon = 3};
+        enum Shape {None = 0, Ellipse = 1, Box = 2, Polygon = 3};
         Shape objShape = None;
         SDL_Color color = SDL_Color(255, 255, 255, 255);
         std::vector<b2Vec2> verts = {b2Vec2(0, -0.5f), b2Vec2(0.5f, 0.5f), b2Vec2(-0.5f, 0.5f)};
@@ -25,7 +25,7 @@ class GameObject {
         float friction = 0.3f;
         int layer = 0;
 
-        //sets the texture of a gameobject from a file location
+        //sets the texture of a gameObject from a file location
         void SetTextureFromFile(SDL_Renderer* renderer, std::string textureFile);
 
         //Getter for the file path string and target texture

@@ -9,9 +9,6 @@
 
 //these are used for debugging and saving/loading files
 #include <iostream>
-#include <fstream>
-#include <filesystem>
-#include <ShObjIdl_core.h>
 
 namespace EngineManager {
 
@@ -38,17 +35,6 @@ namespace EngineManager {
     //Runs the Update Loop on gameObjects when playing
     void UpdateGameObjects();
     void ReadPlayInput(SDL_Event event);
-
-    //Saves and Loads the project from a file
-    bool LoadFile(std::string path);
-    bool SaveFile(std::string path);
-    std::string CreateLoadDialogBox();
-    std::string CreateSaveDialogBox();
-
-    //building projects
-    std::string GetFolderDialogBox();
-    bool BuildGame(std::string buildPath, std::string buildName);
-    bool CopyMyFile(std::string srcPath, std::string dstPath);
 
     //Controlling the Camera offset
     b2Vec2 GetCameraPosition();
