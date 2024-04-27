@@ -18,7 +18,7 @@ class RayCastCallback : public b2RayCastCallback {
 };
 
 namespace DefaultUpdates {
-    void* functionList[2] = {Empty, MovePlayer};
+    void* functionList[4] = {Empty, MovePlayer, WinGameCollider, LoseGameCollider};
     int GetFunctionNumber(void (*function)(void* gObj)) {
         for (int i = 0; i < 2; i++) {
             if (functionList[i] == function) {
@@ -58,5 +58,11 @@ namespace DefaultUpdates {
         playerObj->objBody->SetLinearVelocity(b2Vec2(0, playerObj->objBody->GetLinearVelocity().y));
         playerObj->objBody->SetAngularVelocity(0);
         playerObj->objBody->ApplyLinearImpulseToCenter(impulse, true);
+    }
+    void WinGameCollider(void* collisionObj, void* playerObj) {
+        //
+    }
+    void LoseGameCollider(void* collisionObj, void* playerObj) {
+        //
     }
 };

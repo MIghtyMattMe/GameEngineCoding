@@ -9,4 +9,6 @@ namespace DefaultUpdates {
     void (*GetFunctionFromNumber(int num))(void*);
     void Empty(void* gObj);
     void MovePlayer(void* gObj);
+    void WinGameCollider(void* collisionObj, void* playerObj);
+    void LoseGameCollider(void* collisionObj, void* playerObj);
 };
