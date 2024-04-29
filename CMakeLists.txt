@@ -26,6 +26,9 @@ add_executable(Engine1    imgui/imgui_demo.cpp
                           UpdateFunctions/KeyData.h
                           Inspector.h
                           SaveLoadBuild.h
+                          UpdateFunctions/CoreFunctions.h
+                          UpdateFunctions/UpdateDictionary.h
+                          UpdateFunctions/ScriptConverter.h
                 )
 
 target_link_libraries(Engine1 ${OPENGL_gl_LIBRARY} ${CMAKE_CURRENT_SOURCE_DIR}/lib/SDL3.lib ${CMAKE_CURRENT_SOURCE_DIR}/lib/SDL3_test.lib ${CMAKE_CURRENT_SOURCE_DIR}/lib/SDL3_image.lib ${CMAKE_CURRENT_SOURCE_DIR}/lib/box2d.lib)

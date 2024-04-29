@@ -25,6 +25,12 @@ class GameObject {
         float friction = 0.3f;
         int layer = 0;
 
+        std::string UpdateFunction = "";
+        bool Touch = false;
+        GameObject* TouchObj = nullptr;
+        bool KeyPress = false;
+        bool Grounded = false;
+
         //sets the texture of a gameObject from a file location
         void SetTextureFromFile(SDL_Renderer* renderer, std::string textureFile);
 
@@ -33,11 +39,13 @@ class GameObject {
         SDL_Texture* GetTexturePtr() { return targetTexture; }
 
         //Update will be called once per frame
+        /*
         void SetUpdateFunction(void (*functionPointer)(void* gObj)) {
             updateFunction = functionPointer;
         }
         void  (*GetUpdateFunction())(void*) {return updateFunction; }
         void (*updateFunction)(void* gObj) = nullptr;
+        */
 
         //operator overrides for checking this data structure
         bool operator==(GameObject other) {
