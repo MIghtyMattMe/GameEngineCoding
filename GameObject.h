@@ -9,6 +9,7 @@
 
 class GameObject {
     public:
+        GameObject();
         GameObject(SDL_Renderer* renderer, b2BodyDef targetBody, int shape=3, float targetWidth=1.0f, float targetHeight=1.0f, std::string textureFile="",  float targetDensity=1.0f, float targetFriction=0.3f);
         ~GameObject();
 
@@ -26,9 +27,6 @@ class GameObject {
         int layer = 0;
 
         std::string UpdateFunction = "";
-        bool Touch = false;
-        GameObject* TouchObj = nullptr;
-        bool KeyPress = false;
         bool Grounded = false;
 
         //sets the texture of a gameObject from a file location

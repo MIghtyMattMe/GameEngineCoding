@@ -5,14 +5,18 @@
 #include <iostream>
 
 namespace CoreUpdateFunctions {
-    void KeyPressed(bool* conditional, bool notted, void* gObj, b2Vec2 data) {
-        if (!(*conditional ^ notted)) return;
+    extern bool alwaysTrue = true;
+    extern bool key;
+    extern bool touch;
+    extern GameObject touchObj;
+    void KeyPressed(bool &conditional, bool notted, void* gObj, b2Vec2 data) {
+        if (!(conditional ^ notted)) return;
         GameObject* myObj = (GameObject*) gObj;
-        int key = (int) data.x & 0xF + 3;
-        myObj->KeyPress = KeyData::KeyDown((SDL_Scancode) key);
+        int keyToCheck = (int) data.x & 0xF + 3;
+        key = KeyData::KeyDown((SDL_Scancode) keyToCheck);
     }
-    void Push(bool* conditional, bool notted, void* gObj, b2Vec2 data) {
-        if (!(*conditional ^ notted)) return;
+    void Push(bool &conditional, bool notted, void* gObj, b2Vec2 data) {
+        if (!(conditional ^ notted)) return;
         GameObject* myObj = (GameObject*) gObj;
         myObj->objBody->ApplyLinearImpulseToCenter(data, true);
     }

@@ -1,6 +1,7 @@
 #include "GameObject.h"
 #include <iostream>
 
+GameObject::GameObject() {}
 GameObject::GameObject(SDL_Renderer* renderer, b2BodyDef targetBody, int shape, float targetWidth, float targetHeight, std::string textureFile, float targetDensity, float targetFriction) {
     objBodyDef = targetBody;
     width = targetWidth;
@@ -9,7 +10,7 @@ GameObject::GameObject(SDL_Renderer* renderer, b2BodyDef targetBody, int shape, 
     friction = targetFriction;
     objShape = (shape <= 3) ? (Shape) shape : Polygon;
     SetTextureFromFile(renderer, textureFile);
-    SetUpdateFunction(DefaultUpdates::Empty);
+    //SetUpdateFunction(DefaultUpdates::Empty);
 }
 GameObject::~GameObject() {
     if (targetTexture != NULL || targetTexture != nullptr) SDL_DestroyTexture(targetTexture);
@@ -23,8 +24,8 @@ GameObject* GameObject::Clone(SDL_Renderer* targetRenderer) {
     newBody.angle = objBodyDef.angle;
     GameObject* newObj = new GameObject(targetRenderer, newBody, objShape, width, height, GetFilePath());
     newObj->SetTextureFromFile(targetRenderer, newObj->GetFilePath());
-    void (*objUpdateFunction)(void* gObj) = GetUpdateFunction();
-    newObj->SetUpdateFunction(objUpdateFunction);
+    //void (*objUpdateFunction)(void* gObj) = GetUpdateFunction();
+    //newObj->SetUpdateFunction(objUpdateFunction);
     newObj->layer = layer;
     newObj->color = color;
     newObj->verts = verts;

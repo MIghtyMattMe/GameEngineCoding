@@ -273,7 +273,7 @@ namespace EngineManager {
             }
             newObj = new GameObject(currRenderer, newBody, brush->getType(), targetWidth, targetHeight, brush->getTextureFile());
             if (brush->getType() == Brush::Player) {
-                newObj->SetUpdateFunction(DefaultUpdates::MovePlayer);
+                //newObj->SetUpdateFunction(DefaultUpdates::MovePlayer);
                 newObj->objBodyDef.type = b2_dynamicBody;
                 newObj->objBodyDef.fixedRotation = true;
             }
@@ -357,7 +357,7 @@ namespace EngineManager {
         phyWorld->Step(timeStep, 6, 2);
         for (std::vector<GameObject*> &layer : layeredObjectsToLoad) {
             for (GameObject* &gObj : layer) {
-                (gObj->updateFunction)(gObj);
+                //(gObj->updateFunction)(gObj);
             }
         }
     }
