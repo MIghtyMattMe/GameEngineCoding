@@ -358,6 +358,9 @@ namespace EngineManager {
         for (std::vector<GameObject*> &layer : layeredObjectsToLoad) {
             for (GameObject* &gObj : layer) {
                 //(gObj->updateFunction)(gObj);
+                for (auto func : UpdateDictionary::UpdateFunctions[gObj->UpdateFunction]) {
+                    (func.function)(func.conditional, func.notted, gObj, func.data);
+                }
             }
         }
     }

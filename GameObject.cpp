@@ -26,6 +26,7 @@ GameObject* GameObject::Clone(SDL_Renderer* targetRenderer) {
     newObj->SetTextureFromFile(targetRenderer, newObj->GetFilePath());
     //void (*objUpdateFunction)(void* gObj) = GetUpdateFunction();
     //newObj->SetUpdateFunction(objUpdateFunction);
+    newObj->UpdateFunction = UpdateFunction;
     newObj->layer = layer;
     newObj->color = color;
     newObj->verts = verts;

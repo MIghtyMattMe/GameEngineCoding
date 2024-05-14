@@ -2,6 +2,7 @@
 //Custom scripts
 #include "Brush.h"
 #include "GameObject.h"
+#include "UpdateFunctions/UpdateDictionary.h"
 
 //SDL and ImGui database
 #include "imgui/imgui.h"
@@ -88,6 +89,26 @@ namespace Inspector {
         }
     }
 
+    void BuildUpdateSelector(GameObject* selectedObject) {
+        std::string currentUpdateFunc = selectedObject->UpdateFunction;
+        if (ImGui::Button("Generate Function List")) {
+            UpdateDictionary::Generate();
+        }
+        if (ImGui::BeginCombo("Update Function:", currentUpdateFunc.c_str())) {
+            for (auto const& [key, value] : UpdateDictionary::UpdateFunctions) {
+                bool is_selected = (currentUpdateFunc == key);
+                if (ImGui::Selectable(key.c_str(), is_selected)) {
+                    currentUpdateFunc = key;
+                    selectedObject->UpdateFunction = key;
+                }
+                if (is_selected) {
+                    ImGui::SetItemDefaultFocus();
+                }
+            }
+            ImGui::EndCombo();
+        }
+    }
+
     void BuildPlayModeInspector(GameObject* selectedObject) {
         std::string xPos = "X Pos: " + std::to_string(selectedObject->objBody->GetPosition().x);
         ImGui::Text(xPos.c_str());
@@ -129,6 +150,7 @@ namespace Inspector {
         ImGui::SliderFloat("Friction", &selectedObject->friction, 0, 10);
         selectedObject->objBodyDef.position.Set(xPos, yPos);
         
+        BuildUpdateSelector(selectedObject);
         BuildPhysicsBodySelector(selectedObject);
         BuildShapeSelector(selectedObject);
 
