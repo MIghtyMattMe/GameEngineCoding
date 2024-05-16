@@ -10,7 +10,7 @@ GameObject::GameObject(SDL_Renderer* renderer, b2BodyDef targetBody, int shape, 
     friction = targetFriction;
     objShape = (shape <= 3) ? (Shape) shape : Polygon;
     SetTextureFromFile(renderer, textureFile);
-    //SetUpdateFunction(DefaultUpdates::Empty);
+    UpdateFunction = "None";
 }
 GameObject::~GameObject() {
     if (targetTexture != NULL || targetTexture != nullptr) SDL_DestroyTexture(targetTexture);

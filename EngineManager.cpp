@@ -35,6 +35,7 @@ namespace EngineManager {
             layeredObjectsToLoad.push_back(std::vector<GameObject*>());
             layeredObjectsSaved.push_back(std::vector<GameObject*>());
         }
+        UpdateDictionary::Generate();
     }
     //remove all our allocated memory
     void CloseEngine() {
@@ -357,7 +358,6 @@ namespace EngineManager {
         phyWorld->Step(timeStep, 6, 2);
         for (std::vector<GameObject*> &layer : layeredObjectsToLoad) {
             for (GameObject* &gObj : layer) {
-                //(gObj->updateFunction)(gObj);
                 for (auto func : UpdateDictionary::UpdateFunctions[gObj->UpdateFunction]) {
                     (func.function)(func.conditional, func.notted, gObj, func.data);
                 }

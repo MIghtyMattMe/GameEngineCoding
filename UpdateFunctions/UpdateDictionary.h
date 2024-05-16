@@ -10,10 +10,9 @@
 namespace UpdateDictionary {
     extern std::map<std::string, std::vector<ScriptConverter::functionHolder>> UpdateFunctions = {};
     bool Generate() {
-        std::cout << "starting generation" << std::endl;
         //clear the old map
         UpdateFunctions.clear();
-        std::cout << "cleared old function list" << std::endl;
+        UpdateFunctions.insert({"None", std::vector<ScriptConverter::functionHolder>()});
         //add in the default update functions
         for (std::filesystem::directory_entry const &file : std::filesystem::recursive_directory_iterator("UpdateFunctions/Default")) {
             std::string name;
