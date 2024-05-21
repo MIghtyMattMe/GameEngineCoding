@@ -1,6 +1,7 @@
 #include "GameObject.h"
 #include <iostream>
 
+GameObject::GameObject() {}
 GameObject::GameObject(SDL_Renderer* renderer, b2BodyDef targetBody, int shape, float targetWidth, float targetHeight, std::string textureFile, float targetDensity, float targetFriction) {
     objBodyDef = targetBody;
     width = targetWidth;
@@ -8,8 +9,8 @@ GameObject::GameObject(SDL_Renderer* renderer, b2BodyDef targetBody, int shape, 
     density = targetDensity;
     friction = targetFriction;
     objShape = (shape <= 3) ? (Shape) shape : Polygon;
-    SetTextureFromeFile(renderer, textureFile);
-    SetUpdateFunction(DefaultUpdates::Empty);
+    SetTextureFromFile(renderer, textureFile);
+    UpdateFunction = "None";
 }
 GameObject::~GameObject() {
     if (targetTexture != NULL || targetTexture != nullptr) SDL_DestroyTexture(targetTexture);
@@ -22,9 +23,10 @@ GameObject* GameObject::Clone(SDL_Renderer* targetRenderer) {
     newBody.type = objBodyDef.type;
     newBody.angle = objBodyDef.angle;
     GameObject* newObj = new GameObject(targetRenderer, newBody, objShape, width, height, GetFilePath());
-    newObj->SetTextureFromeFile(targetRenderer, newObj->GetFilePath());
-    void (*objUpdateFunction)(void* gObj) = GetUpdateFunction();
-    newObj->SetUpdateFunction(objUpdateFunction);
+    newObj->SetTextureFromFile(targetRenderer, newObj->GetFilePath());
+    //void (*objUpdateFunction)(void* gObj) = GetUpdateFunction();
+    //newObj->SetUpdateFunction(objUpdateFunction);
+    newObj->UpdateFunction = UpdateFunction;
     newObj->layer = layer;
     newObj->color = color;
     newObj->verts = verts;
@@ -42,7 +44,7 @@ void GameObject::CreateAndPlaceBody(b2World* phyWorld) {
         boxFixtureDef.filter.categoryBits = (1 << layer);
         boxFixtureDef.filter.maskBits = (1 << layer);
         objBody->CreateFixture(&boxFixtureDef);
-    } else if (objShape == Ecllipse) {
+    } else if (objShape == Ellipse) {
         const int STEPS = 32;
         float a = (width >= height) ? width / 2 : height / 2;
         float b = (width >= height) ? height / 2 : width / 2;
@@ -95,7 +97,7 @@ void GameObject::CreateAndPlaceBody(b2World* phyWorld) {
     }
 }
 
-void GameObject::SetTextureFromeFile(SDL_Renderer* renderer, std::string textureFile) {
+void GameObject::SetTextureFromFile(SDL_Renderer* renderer, std::string textureFile) {
     textureFilePath = textureFile;
     targetTexture = IMG_LoadTexture(renderer, &textureFile[0]);
 }

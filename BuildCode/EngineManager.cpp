@@ -1,5 +1,7 @@
 #include "EngineManager.h"
 #include "Brush.h"
+#include "SaveLoadBuild.h"
+#include "UpdateFunctions/UpdateDictionary.h"
 
 std::vector<SDL_Scancode> KeyData::playModeInput = std::vector<SDL_Scancode>();
 Uint64 KeyData::keysPressed = 0;
@@ -27,11 +29,14 @@ namespace EngineManager {
 
     //Initialized the engine by creating out brush (and other stuff eventually)
     void InitEngine(SDL_Renderer* renderer) {
+        brush = new Brush();
         currRenderer = renderer;
         for (int i = 0; i < 8; i++) {
             layeredObjectsToLoad.push_back(std::vector<GameObject*>());
             layeredObjectsSaved.push_back(std::vector<GameObject*>());
         }
+        UpdateDictionary::Generate();
+        SaveLoadBuild::LoadFile("main.smol", currRenderer, layeredObjectsToLoad);
     }
     //remove all our allocated memory
     void CloseEngine() {
@@ -54,12 +59,12 @@ namespace EngineManager {
         selectedObject = NULL;
         currRenderer = NULL;
     }
-    void StartPlay() {
-        if (!playing) {
-            for (Uint8 i = 0; i < layeredObjectsToLoad.size(); i++) {
-                for (GameObject* &gObj : layeredObjectsToLoad[i]) {
-                    gObj->CreateAndPlaceBody(phyWorld);
-                }
+
+    void PlayEngine() {
+        for (Uint8 i = 0; i < layeredObjectsToLoad.size(); i++) {
+            for (GameObject* &gObj : layeredObjectsToLoad[i]) {
+                layeredObjectsSaved[i].push_back(gObj->Clone(currRenderer));
+                gObj->CreateAndPlaceBody(phyWorld);
             }
         }
         playing = true;
@@ -68,6 +73,30 @@ namespace EngineManager {
     //These take an existing gameObject (or create a new one) and adds it to the list of objects to be rendered
     void AddToViewPort(GameObject* gameObject) {
         layeredObjectsToLoad[gameObject->layer].push_back(gameObject);
+    }
+    void AddToViewPort(b2Vec2 targetPos, float targetWidth, float targetHeight, std::string textureFile) {
+        GameObject* newObj = nullptr;
+        b2BodyDef newBody;
+        newBody.position.Set(targetPos.x + cameraPos.x, targetPos.y + cameraPos.y);
+        newBody.type = b2_staticBody;
+        if (textureFile.empty()) {
+            if (brush->getTextureFile().empty()) {
+                SDL_Log("No brush texture was chosen!");
+                return;
+            }
+            newObj = new GameObject(currRenderer, newBody, brush->getType(), targetWidth, targetHeight, brush->getTextureFile());
+            if (brush->getType() == Brush::Player) {
+                //newObj->SetUpdateFunction(DefaultUpdates::MovePlayer);
+                newObj->objBodyDef.type = b2_dynamicBody;
+                newObj->objBodyDef.fixedRotation = true;
+            }
+        } else {
+            newObj = new GameObject(currRenderer, newBody, 0, targetWidth, targetHeight, textureFile);
+        }
+        if (playing) {
+            newObj->CreateAndPlaceBody(phyWorld);
+        }
+        layeredObjectsToLoad[newObj->layer].push_back(newObj);
     }
     //handles the actual drawing of textures
     void DrawViewPort() {
@@ -83,22 +112,27 @@ namespace EngineManager {
                     SDL_Vertex geoVerts[8];
                     const int numVerts = gObj->verts.size();
                     b2Vec2 bodyPosition = (playing) ? gObj->objBody->GetPosition() : gObj->objBodyDef.position;
-                    SDL_FPoint centeroid = SDL_FPoint(0, 0);
+                    float rotation = (playing) ? gObj->objBody->GetAngle() : gObj->objBodyDef.angle;
+                    SDL_FPoint centroid = SDL_FPoint(0, 0);
                     for (Uint8 i = 0; i < numVerts; i++) {
-                        geoVerts[i].position.x = MeterToPixel((gObj->verts[i].x * gObj->width) + bodyPosition.x - cameraPos.x);
-                        geoVerts[i].position.y = MeterToPixel((gObj->verts[i].y * gObj->height) + bodyPosition.y - cameraPos.y);
+                        float posX = gObj->verts[i].x * gObj->width;
+                        float posY = gObj->verts[i].y * gObj->height;
+                        float posXRot = (posX * cos(rotation) - posY * sin(rotation)) + bodyPosition.x - cameraPos.x;
+                        float posYRot = (posX * sin(rotation) + posY * cos(rotation)) + bodyPosition.y - cameraPos.y;
+                        geoVerts[i].position.x = MeterToPixel(posXRot);
+                        geoVerts[i].position.y = MeterToPixel(posYRot);
                         geoVerts[i].color.r = gObj->color.r / 255.0f;
                         geoVerts[i].color.g = gObj->color.g / 255.0f;
                         geoVerts[i].color.b = gObj->color.b / 255.0f;
                         geoVerts[i].color.a = gObj->color.a / 255.0f;
-                        centeroid.x += (gObj->verts[i].x * gObj->width) + bodyPosition.x - cameraPos.x;
-                        centeroid.y += (gObj->verts[i].y * gObj->height) + bodyPosition.y - cameraPos.y;
+                        centroid.x += posXRot;
+                        centroid.y += posYRot;
                     }
-                    centeroid.x = MeterToPixel(centeroid.x / numVerts);
-                    centeroid.y = MeterToPixel(centeroid.y / numVerts);
+                    centroid.x = MeterToPixel(centroid.x / numVerts);
+                    centroid.y = MeterToPixel(centroid.y / numVerts);
                     //map points to various triangles, centered at 0,0
                     SDL_Vertex center = SDL_Vertex();
-                    center.position = centeroid;
+                    center.position = centroid;
                     center.color.r = gObj->color.r / 255.0f;
                     center.color.g = gObj->color.g / 255.0f;
                     center.color.b = gObj->color.b / 255.0f;
@@ -136,7 +170,9 @@ namespace EngineManager {
         phyWorld->Step(timeStep, 6, 2);
         for (std::vector<GameObject*> &layer : layeredObjectsToLoad) {
             for (GameObject* &gObj : layer) {
-                (gObj->updateFunction)(gObj);
+                for (auto func : UpdateDictionary::UpdateFunctions[gObj->UpdateFunction]) {
+                    (func.function)(func.conditional, func.notted, gObj, func.data);
+                }
             }
         }
     }
@@ -157,6 +193,9 @@ namespace EngineManager {
     b2Vec2 GetCameraPosition() {
         return cameraPos;
     }
+    void SetCameraPosition(b2Vec2 newPos) {
+        cameraPos = newPos;
+    }
 
     //these are used for physics world creation in main.cpp
     b2Vec2 GetGravityVector() {
@@ -170,65 +209,4 @@ namespace EngineManager {
     float PixToMeter(float pixels) { return (pixels * 0.02f); }
     b2Vec2 VectorMeterToPixel(b2Vec2 meterVec) { return b2Vec2(meterVec.x * 50, meterVec.y * 50); }
     b2Vec2 VectorPixelToMeter(b2Vec2 pixelVec) { return b2Vec2(pixelVec.x * 0.02f, pixelVec.y * 0.02f); }
-
-    //These are all the functions that handle saving and loading files in/out of the engine
-    bool LoadFile(std::string path) {
-        //first, load the file
-        std::ifstream srcFile(path);
-        std::string input;
-        //then delete the current game
-        for (std::vector<GameObject*> &layer : layeredObjectsToLoad) {
-            for (GameObject* &gObj : layer) {
-                delete gObj;
-            }
-            layer.clear();
-        }
-        //then, read new gameObjects from the file
-        while (std::getline(srcFile, input)) {
-            size_t lineIndex = 0;
-            std::string gObjPiece = "";
-            std::vector<std::string> gObjPieces = std::vector<std::string>();
-            while ((lineIndex = input.find(':')) != std::string::npos) {
-                gObjPiece = input.substr(0, input.find(':'));
-                gObjPieces.push_back(gObjPiece);
-                input.erase(0, lineIndex + 1);
-            }
-            //this assumes that the last item of the saved gameobj is always the texture path
-            GameObject* newObj = nullptr;
-            b2BodyDef newBody;
-            newBody.position.Set(std::stof(gObjPieces[0]), std::stof(gObjPieces[1]));
-            newBody.angle = std::stof(gObjPieces[2]);
-            newBody.type = (b2BodyType) std::stoi(gObjPieces[3]);
-            newObj = new GameObject(currRenderer, newBody, (GameObject::Shape) std::stoi(gObjPieces[4]), std::stof(gObjPieces[9]), std::stof(gObjPieces[10]), input, std::stof(gObjPieces[11]), std::stof(gObjPieces[12]));
-            newObj->SetUpdateFunction(DefaultUpdates::GetFunctionFromNumber(std::stoi(gObjPieces[14])));
-            newObj->layer = std::stoi(gObjPieces[13]);
-            newObj->color = SDL_Color(std::stoi(gObjPieces[5]), std::stoi(gObjPieces[6]), std::stoi(gObjPieces[7]), std::stoi(gObjPieces[8]));
-
-            //set up verts
-            if (newObj->objShape == GameObject::Polygon) {
-                newObj->verts.clear();
-                std::string vertInput;
-                std::getline(srcFile, vertInput);
-                size_t vertLineIndex = 0;
-                std::string gObjVertPiece = "";
-                std::vector<std::string> gObjVertPieces = std::vector<std::string>();
-                while ((vertLineIndex = vertInput.find(':')) != std::string::npos) {
-                    gObjVertPiece = vertInput.substr(0, vertLineIndex);
-                    gObjVertPieces.push_back(gObjVertPiece);
-                    vertInput.erase(0, vertLineIndex + 1);
-                }
-                std::cout << std::stof(gObjVertPieces.at(3)) << std::endl;
-                for (size_t i = 0; i < gObjVertPieces.size(); i++) {
-                    b2Vec2 newVert = b2Vec2();
-                    newVert.x = std::stof(gObjVertPieces.at(i));
-                    i++;
-                    newVert.y = std::stof(gObjVertPieces.at(i));
-                    newObj->verts.push_back(newVert);
-                }
-            }
-            AddToViewPort(newObj);
-        }
-        srcFile.close();
-        return true;
-    }
 }

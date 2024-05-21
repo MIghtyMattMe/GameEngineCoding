@@ -22,7 +22,6 @@ add_executable(Engine1    imgui/imgui_demo.cpp
                           GameObject.cpp
                           EngineManager.cpp
                           main.cpp
-                          UpdateFunctions/Default.cpp
                           UpdateFunctions/KeyData.h
                           Inspector.h
                           SaveLoadBuild.h
@@ -35,4 +34,13 @@ target_link_libraries(Engine1 ${OPENGL_gl_LIBRARY} ${CMAKE_CURRENT_SOURCE_DIR}/l
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
 
+file(REMOVE_RECURSE ${CMAKE_CURRENT_BINARY_DIR}/Debug/UpdateFunctions)
+add_custom_command(TARGET ${PROJECT_NAME} PRE_BUILD
+                    COMMAND ${CMAKE_COMMAND} -E copy_directory
+                    ${CMAKE_SOURCE_DIR}/UpdateFunctions/ ${CMAKE_CURRENT_BINARY_DIR}/Debug/UpdateFunctions)
+
+file(REMOVE_RECURSE ${CMAKE_CURRENT_BINARY_DIR}/Debug/BuildCode)
+add_custom_command(TARGET ${PROJECT_NAME} PRE_BUILD
+                    COMMAND ${CMAKE_COMMAND} -E copy_directory
+                    ${CMAKE_SOURCE_DIR}/BuildCode/ ${CMAKE_CURRENT_BINARY_DIR}/Debug/BuildCode)
 include(CPack)

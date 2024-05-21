@@ -15,7 +15,10 @@ add_executable(Engine1
                           GameObject.cpp
                           EngineManager.cpp
                           main.cpp
-                          UpdateFunctions/Default.cpp
+                          SaveLoadBuild.h
+                          UpdateFunctions/CoreFunctions.h
+                          UpdateFunctions/UpdateDictionary.h
+                          UpdateFunctions/ScriptConverter.h
                           UpdateFunctions/KeyData.h
                 )
 

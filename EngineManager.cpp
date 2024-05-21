@@ -59,6 +59,16 @@ namespace EngineManager {
         currRenderer = NULL;
     }
 
+    void PlayEngine() {
+        for (Uint8 i = 0; i < layeredObjectsToLoad.size(); i++) {
+            for (GameObject* &gObj : layeredObjectsToLoad[i]) {
+                layeredObjectsSaved[i].push_back(gObj->Clone(currRenderer));
+                gObj->CreateAndPlaceBody(phyWorld);
+            }
+        }
+        playing = true;
+    }
+
     //Main Render Loop for our engine interface
     void RenderEngine() {
         MakeTools();
@@ -164,12 +174,7 @@ namespace EngineManager {
             selectedObject = nullptr;
             if (!playing) {
                 playJustHit = true;
-                for (Uint8 i = 0; i < layeredObjectsToLoad.size(); i++) {
-                    for (GameObject* &gObj : layeredObjectsToLoad[i]) {
-                        layeredObjectsSaved[i].push_back(gObj->Clone(currRenderer));
-                        gObj->CreateAndPlaceBody(phyWorld);
-                    }
-                }
+                PlayEngine();
             }
             playing = true;
         }

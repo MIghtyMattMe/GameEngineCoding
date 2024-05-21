@@ -120,32 +120,19 @@ namespace SaveLoadBuild {
     }
 
     bool BuildGame(std::string buildPath, std::string buildName, SDL_Renderer* &currRenderer, std::vector<std::vector<GameObject*>> &layeredObjectsToLoad) {
-        //copy the dlls I want
         if (!CopyMyFile("SDL3.dll", buildPath)) return false;
         if (!CopyMyFile("SDL3_image.dll", buildPath)) return false;
-        //copy my resources
         std::filesystem::remove_all(buildPath + "/resources");
         std::filesystem::create_directories(buildPath + "/resources");
-        std::filesystem::copy("resources/", buildPath + "/resources/");
-        //copy my update functions
-        std::filesystem::remove_all(buildPath + "/UpdateFunctions");
-        std::filesystem::create_directories(buildPath + "/UpdateFunctions");
-        std::filesystem::copy("UpdateFunctions/", buildPath + "/UpdateFunctions/");
-        std::filesystem::create_directories(buildPath + "/UpdateFunctions/Custom");
-        std::filesystem::copy("UpdateFunctions/Custom/", buildPath + "/UpdateFunctions/Custom/");
-        std::filesystem::create_directories(buildPath + "/UpdateFunctions/Default");
-        std::filesystem::copy("UpdateFunctions/Default/", buildPath + "/UpdateFunctions/Default/");
-        //create the build folder
         std::filesystem::create_directories(buildPath + "/build");
-
-        //save the project in the build path and make it
+        std::filesystem::copy("resources/", buildPath + "/resources/");
         SaveFile(buildPath + "/main.smol", currRenderer, layeredObjectsToLoad);
         std::string cmakeCMD = "cmake --build " + buildPath + "/build --config Debug";
+        //std::string pathCMD = "cd " + buildPath;
         std::string configCMD = "cmake -A Win32 -B " + buildPath + "/build -S ./BuildCode";
+        //system(pathCMD.c_str());
         system(configCMD.c_str());
         system(cmakeCMD.c_str());
-
-        //replace the exe and remove the build folder
         std::filesystem::remove(buildPath + "/" + buildName);
         std::filesystem::copy_file(buildPath + "/build/Debug/Engine1.exe", buildPath + "/" + buildName);
         std::filesystem::remove_all(buildPath + "/build");

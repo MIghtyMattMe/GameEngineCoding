@@ -4,7 +4,6 @@
 #include "SDL3/SDL_image.h"
 #include "box2d/box2d.h"
 #include "GameObject.h"
-#include "UpdateFunctions/Default.h"
 #include <vector>
 
 //these are used for debugging and saving/loading files
@@ -15,6 +14,7 @@ namespace EngineManager {
     //starting and ending the engine
     void InitEngine(SDL_Renderer* renderer);
     void CloseEngine();
+    void PlayEngine();
 
     //creating the engine visual and logic
     void RenderEngine();
