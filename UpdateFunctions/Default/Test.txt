@@ -1,5 +1,16 @@
-KeyPressed a
+KeyJustPressed d
 IF key
-Push 1 1
+Velocity 2 0
 EXIT
-Push -1 -1
+KeyJustPressed a
+IF key
+Velocity -2 0
+EXIT
+KeyJustPressed w
+IF key
+Velocity 0 5
+EXIT
+KeyJustPressed s
+IF key
+Velocity 0 -5
+EXIT

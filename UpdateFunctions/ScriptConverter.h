@@ -79,8 +79,21 @@ namespace ScriptConverter {
             newFunc->conditional = &(*condition);
             newFunc->notted = (notRecord) ? true : false;
             newFunc->gObj = &(*currObj);
-            newFunc->data.x = std::stof(lineSegments[1]) * 0.02f;
-            newFunc->data.y = std::stof(lineSegments[2]) * -0.02f;
+            newFunc->data.x = std::stof(lineSegments[1]);
+            newFunc->data.y = -std::stof(lineSegments[2]);
+            functionCalls.push_back(*newFunc);
+        } else if (lineSegments[0].compare("Velocity") == 0) {
+            if (lineSegments.size() != 3) {
+                SDL_Log("Velocity command only takes 2 arguments.");
+                return false;
+            }
+            functionHolder *newFunc = new functionHolder();
+            newFunc->function = CoreUpdateFunctions::Velocity;
+            newFunc->conditional = &(*condition);
+            newFunc->notted = (notRecord) ? true : false;
+            newFunc->gObj = &(*currObj);
+            newFunc->data.x = std::stof(lineSegments[1]);
+            newFunc->data.y = -std::stof(lineSegments[2]);
             functionCalls.push_back(*newFunc);
         } else if (lineSegments[0].compare("KeyPressed") == 0) {
             if (lineSegments.size() != 2) {
@@ -89,6 +102,32 @@ namespace ScriptConverter {
             }
             functionHolder *newFunc = new functionHolder();
             newFunc->function = CoreUpdateFunctions::KeyPressed;
+            newFunc->conditional = &(*condition);
+            newFunc->notted = (notRecord) ? true : false;
+            newFunc->gObj = &(*currObj);
+            newFunc->data.x = lineSegments[1][0];
+            newFunc->data.y = 0;
+            functionCalls.push_back(*newFunc);
+        } else if (lineSegments[0].compare("KeyJustPressed") == 0) {
+            if (lineSegments.size() != 2) {
+                SDL_Log("KeyJustPressed command only takes 1 arguments.");
+                return false;
+            }
+            functionHolder *newFunc = new functionHolder();
+            newFunc->function = CoreUpdateFunctions::KeyJustPressed;
+            newFunc->conditional = &(*condition);
+            newFunc->notted = (notRecord) ? true : false;
+            newFunc->gObj = &(*currObj);
+            newFunc->data.x = lineSegments[1][0];
+            newFunc->data.y = 0;
+            functionCalls.push_back(*newFunc);
+        } else if (lineSegments[0].compare("KeyJustReleased") == 0) {
+            if (lineSegments.size() != 2) {
+                SDL_Log("KeyJustReleased command only takes 1 arguments.");
+                return false;
+            }
+            functionHolder *newFunc = new functionHolder();
+            newFunc->function = CoreUpdateFunctions::KeyJustReleased;
             newFunc->conditional = &(*condition);
             newFunc->notted = (notRecord) ? true : false;
             newFunc->gObj = &(*currObj);
