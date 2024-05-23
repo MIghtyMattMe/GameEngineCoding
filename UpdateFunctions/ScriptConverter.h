@@ -95,6 +95,32 @@ namespace ScriptConverter {
             newFunc->data.x = std::stof(lineSegments[1]);
             newFunc->data.y = -std::stof(lineSegments[2]);
             functionCalls.push_back(*newFunc);
+        } else if (lineSegments[0].compare("PushLocal") == 0) {
+            if (lineSegments.size() != 3) {
+                SDL_Log("PushLocal command only takes 2 arguments.");
+                return false;
+            }
+            functionHolder *newFunc = new functionHolder();
+            newFunc->function = CoreUpdateFunctions::PushLocal;
+            newFunc->conditional = &(*condition);
+            newFunc->notted = (notRecord) ? true : false;
+            newFunc->gObj = &(*currObj);
+            newFunc->data.x = std::stof(lineSegments[1]);
+            newFunc->data.y = -std::stof(lineSegments[2]);
+            functionCalls.push_back(*newFunc);
+        } else if (lineSegments[0].compare("VelocityLocal") == 0) {
+            if (lineSegments.size() != 3) {
+                SDL_Log("VelocityLocal command only takes 2 arguments.");
+                return false;
+            }
+            functionHolder *newFunc = new functionHolder();
+            newFunc->function = CoreUpdateFunctions::VelocityLocal;
+            newFunc->conditional = &(*condition);
+            newFunc->notted = (notRecord) ? true : false;
+            newFunc->gObj = &(*currObj);
+            newFunc->data.x = std::stof(lineSegments[1]);
+            newFunc->data.y = -std::stof(lineSegments[2]);
+            functionCalls.push_back(*newFunc);
         } else if (lineSegments[0].compare("KeyPressed") == 0) {
             if (lineSegments.size() != 2) {
                 SDL_Log("KeyPressed command only takes 1 arguments.");

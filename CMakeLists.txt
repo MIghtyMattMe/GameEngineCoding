@@ -37,7 +37,10 @@ set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
 file(REMOVE_RECURSE ${CMAKE_CURRENT_BINARY_DIR}/Debug/UpdateFunctions)
 add_custom_command(TARGET ${PROJECT_NAME} PRE_BUILD
                     COMMAND ${CMAKE_COMMAND} -E copy_directory
-                    ${CMAKE_SOURCE_DIR}/UpdateFunctions/ ${CMAKE_CURRENT_BINARY_DIR}/Debug/UpdateFunctions)
+                    ${CMAKE_SOURCE_DIR}/UpdateFunctions/Default/ ${CMAKE_CURRENT_BINARY_DIR}/Debug/UpdateFunctions/Default)
+add_custom_command(TARGET ${PROJECT_NAME} PRE_BUILD
+                    COMMAND ${CMAKE_COMMAND} -E copy_directory
+                    ${CMAKE_SOURCE_DIR}/UpdateFunctions/Custom/ ${CMAKE_CURRENT_BINARY_DIR}/Debug/UpdateFunctions/Custom)
 
 file(REMOVE_RECURSE ${CMAKE_CURRENT_BINARY_DIR}/Debug/BuildCode)
 add_custom_command(TARGET ${PROJECT_NAME} PRE_BUILD

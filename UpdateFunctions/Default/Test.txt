@@ -1,16 +1,16 @@
 KeyJustPressed d
 IF key
-Velocity 2 0
+VelocityLocal 2 0
 EXIT
 KeyJustPressed a
 IF key
-Velocity -2 0
+VelocityLocal -2 0
 EXIT
 KeyJustPressed w
 IF key
-Velocity 0 5
+VelocityLocal 0 5
 EXIT
 KeyJustPressed s
 IF key
-Velocity 0 -5
+VelocityLocal 0 -5
 EXIT
