@@ -1,16 +1,18 @@
 KeyJustPressed d
 IF key
-VelocityLocal 2 0
+Velocity 2 0
 EXIT
 KeyJustPressed a
 IF key
-VelocityLocal -2 0
+Velocity -2 0
 EXIT
 KeyJustPressed w
 IF key
-VelocityLocal 0 5
+IsGrounded
+IF grounded
+Velocity 0 5
 EXIT
 KeyJustPressed s
 IF key
-VelocityLocal 0 -5
+Velocity 0 -5
 EXIT

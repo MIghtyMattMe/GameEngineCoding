@@ -68,6 +68,8 @@ namespace ScriptConverter {
                 condition = &CoreUpdateFunctions::key;
             } else if (lineSegments[index].compare("touch") == 0) {
                 condition = &CoreUpdateFunctions::touch;
+            } else if (lineSegments[index].compare("grounded") == 0) {
+                condition = &CoreUpdateFunctions::grounded;
             }
         } else if (lineSegments[0].compare("Push") == 0) {
             if (lineSegments.size() != 3) {
@@ -121,6 +123,22 @@ namespace ScriptConverter {
             newFunc->data.x = std::stof(lineSegments[1]);
             newFunc->data.y = -std::stof(lineSegments[2]);
             functionCalls.push_back(*newFunc);
+        } else if (lineSegments[0].compare("Teleport") == 0) {
+            if (lineSegments.size() != 3) {
+                SDL_Log("Teleport command only takes 2 arguments.");
+                return false;
+            }
+            functionHolder *newFunc = new functionHolder();
+            newFunc->function = CoreUpdateFunctions::Teleport;
+            newFunc->conditional = &(*condition);
+            newFunc->notted = (notRecord) ? true : false;
+            newFunc->gObj = &(*currObj);
+            newFunc->data.x = std::stof(lineSegments[1]);
+            newFunc->data.y = -std::stof(lineSegments[2]);
+            functionCalls.push_back(*newFunc);
+        
+        
+
         } else if (lineSegments[0].compare("KeyPressed") == 0) {
             if (lineSegments.size() != 2) {
                 SDL_Log("KeyPressed command only takes 1 arguments.");
@@ -158,6 +176,19 @@ namespace ScriptConverter {
             newFunc->notted = (notRecord) ? true : false;
             newFunc->gObj = &(*currObj);
             newFunc->data.x = lineSegments[1][0];
+            newFunc->data.y = 0;
+            functionCalls.push_back(*newFunc);
+        } else if (lineSegments[0].compare("IsGrounded") == 0) {
+            if (lineSegments.size() != 1) {
+                SDL_Log("IsGrounded command takes 0 arguments.");
+                return false;
+            }
+            functionHolder *newFunc = new functionHolder();
+            newFunc->function = CoreUpdateFunctions::IsGrounded;
+            newFunc->conditional = &(*condition);
+            newFunc->notted = (notRecord) ? true : false;
+            newFunc->gObj = &(*currObj);
+            newFunc->data.x = 0;
             newFunc->data.y = 0;
             functionCalls.push_back(*newFunc);
         } else {
