@@ -32,9 +32,12 @@ namespace EngineManager {
     void SelectObject(GameObject* clickedObj);
     GameObject* FindSelectedObject(b2Vec2 clickedPos);
 
-    //Runs the Update Loop on gameObjects when playing
+    //Functions that run during gameplay, and helper functions for the UpdateCoreFunctions
     void UpdateGameObjects();
     void ReadPlayInput(SDL_Event event);
+    GameObject* FindObjectFromBody(b2Body &bodyToFind);
+    void QueueObjectToDestroy(GameObject *objectToDestroy);
+    void DestroyObjects();
 
     //Controlling the Camera offset
     b2Vec2 GetCameraPosition();

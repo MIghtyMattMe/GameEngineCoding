@@ -47,11 +47,13 @@ namespace SaveLoadBuild {
             b2BodyDef newBody;
             newBody.position.Set(std::stof(gObjPieces[0]), std::stof(gObjPieces[1]));
             newBody.angle = std::stof(gObjPieces[2]);
-            newBody.type = (b2BodyType) std::stoi(gObjPieces[3]);
-            newObj = new GameObject(currRenderer, newBody, (GameObject::Shape) std::stoi(gObjPieces[4]), std::stof(gObjPieces[9]), std::stof(gObjPieces[10]), input, std::stof(gObjPieces[11]), std::stof(gObjPieces[12]));
-            newObj->UpdateFunction = gObjPieces[14];
-            newObj->layer = std::stoi(gObjPieces[13]);
-            newObj->color = SDL_Color(std::stoi(gObjPieces[5]), std::stoi(gObjPieces[6]), std::stoi(gObjPieces[7]), std::stoi(gObjPieces[8]));
+            newBody.fixedRotation = std::strcmp("false", gObjPieces[3].c_str());
+            newBody.type = (b2BodyType) std::stoi(gObjPieces[4]);
+            newObj = new GameObject(currRenderer, newBody, (GameObject::Shape) std::stoi(gObjPieces[5]), std::stof(gObjPieces[10]), std::stof(gObjPieces[11]), input, std::stof(gObjPieces[12]), std::stof(gObjPieces[13]));
+            newObj->UpdateFunction = gObjPieces[16];
+            newObj->layer = std::stoi(gObjPieces[14]);
+            newObj->tag = std::stoi(gObjPieces[15]);
+            newObj->color = SDL_Color(std::stoi(gObjPieces[6]), std::stoi(gObjPieces[7]), std::stoi(gObjPieces[8]), std::stoi(gObjPieces[9]));
 
             //set up verts
             if (newObj->objShape == GameObject::Polygon) {
@@ -89,6 +91,7 @@ namespace SaveLoadBuild {
                 newLine += std::to_string(gObj->objBodyDef.position.x) + ":";
                 newLine += std::to_string(gObj->objBodyDef.position.y) + ":";
                 newLine += std::to_string(gObj->objBodyDef.angle) + ":";
+                newLine += std::to_string(gObj->objBodyDef.fixedRotation) + ":";
                 newLine += std::to_string(gObj->objBodyDef.type) + ":";
                 newLine += std::to_string(gObj->objShape) + ":";
                 newLine += std::to_string(gObj->color.r) + ":";
@@ -100,8 +103,8 @@ namespace SaveLoadBuild {
                 newLine += std::to_string(gObj->density) + ":";
                 newLine += std::to_string(gObj->friction) + ":";
                 newLine += std::to_string(gObj->layer) + ":";
+                newLine += std::to_string(gObj->tag) + ":";
                 newLine += (gObj->UpdateFunction) + ":";
-                //newLine += std::to_string(DefaultUpdates::GetFunctionNumber(gObj->updateFunction)) + ":";
                 newLine += gObj->GetFilePath();
                 dstFile << newLine << std::endl;
                 newLine = "";

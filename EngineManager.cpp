@@ -14,10 +14,9 @@ namespace EngineManager {
     b2Vec2 cameraPos = b2Vec2(0, 0);
 
     //These are our gameobjects in the world
-    //std::vector<GameObject*> objectsToLoad = std::vector<GameObject*>();
     std::vector<std::vector<GameObject*>> layeredObjectsToLoad = std::vector<std::vector<GameObject*>>();
     std::vector<std::vector<GameObject*>> layeredObjectsSaved = std::vector<std::vector<GameObject*>>();
-    //std::vector<GameObject*> savedObjects = std::vector<GameObject*>();
+    std::vector<GameObject*> objectsToDelete = std::vector<GameObject*>();
     GameObject* selectedObject = nullptr;
 
     //physics variables and world
@@ -110,17 +109,12 @@ namespace EngineManager {
             if (playing) {
                 Inspector::BuildPlayModeInspector(selectedObject);
             } else {
-                //std::cout << std::to_string(selectedObject->layer) << std::endl;
                 Inspector::BuildNormalInspector(selectedObject, &layeredObjectsToLoad[0], currRenderer);
-                //std::cout << std::to_string(selectedObject->layer) << std::endl;
                 if (ImGui::Button("Delete")) {
-                    std::cout << std::to_string(selectedObject->layer) << std::endl;
                     for (size_t i = 0; i < layeredObjectsToLoad[selectedObject->layer].size(); i++) {
                         if (layeredObjectsToLoad[selectedObject->layer][i] == selectedObject) {
                             SDL_Log("Deleted");
-                            //std::cout << std::to_string(layeredObjectsToLoad[selectedObject->layer].size()) << std::endl;
                             layeredObjectsToLoad[selectedObject->layer].erase(layeredObjectsToLoad[selectedObject->layer].begin() + i);
-                            //std::cout << std::to_string(layeredObjectsToLoad[selectedObject->layer].size()) << std::endl;
                             delete selectedObject;
                             selectedObject = nullptr;
                             break;
@@ -367,6 +361,8 @@ namespace EngineManager {
                 CoreUpdateFunctions::key = false;
                 CoreUpdateFunctions::touch = false;
                 for (auto func : UpdateDictionary::UpdateFunctions[gObj->UpdateFunction]) {
+                    if (gObj == nullptr) break;
+                    SDL_Log("next function");
                     (func.function)(func.conditional, func.notted, gObj, func.data);
                 }
             }
@@ -381,6 +377,34 @@ namespace EngineManager {
                 KeyData::keysPressed |= (1ULL << code);
             } else if (event.type == SDL_EVENT_KEY_UP) {
                 KeyData::keysPressed ^= (1ULL << code);
+            }
+        }
+    }
+    GameObject* FindObjectFromBody(b2Body &bodyToFind) {
+        for (GameObject* gObj : layeredObjectsToLoad[(int)log2(bodyToFind.GetFixtureList()[0].GetFilterData().maskBits)]) {
+            if (gObj->objBody->GetPosition() == bodyToFind.GetPosition()) {
+                return gObj;
+            }
+        }
+        return nullptr;
+    }
+    void QueueObjectToDestroy(GameObject *objectToDestroy) {
+        for (GameObject *gObj : objectsToDelete) {
+            if (*gObj == *objectToDestroy) return;
+        }
+        objectsToDelete.push_back(objectToDestroy);
+    }
+    void DestroyObjects() {
+        while (objectsToDelete.size() > 0) {
+            for (size_t i = 0; i < layeredObjectsToLoad[objectsToDelete[0]->layer].size(); i++) {
+                if (layeredObjectsToLoad[objectsToDelete[0]->layer][i] == objectsToDelete[0]) {
+                    layeredObjectsToLoad[objectsToDelete[0]->layer].erase(layeredObjectsToLoad[objectsToDelete[0]->layer].begin() + i);
+                    phyWorld->DestroyBody(objectsToDelete[0]->objBody);
+                    delete objectsToDelete[0];
+                    objectsToDelete[0] = nullptr;
+                    objectsToDelete.erase(objectsToDelete.begin());
+                    break;
+                }
             }
         }
     }

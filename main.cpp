@@ -95,6 +95,7 @@ int main(int argc, char* argv[])
             std::cout << "Render Loop Error" << std::endl;
             return -1;
         }
+        EngineManager::DestroyObjects();
 
         // Poll and handle messages (inputs, window resize, etc.)
         SDL_Event event;

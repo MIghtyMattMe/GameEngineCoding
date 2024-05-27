@@ -1,3 +1,8 @@
+KeyPressed o
+IF key
+GetTouch -1
+DestroyTouch
+EXIT
 KeyJustPressed d
 IF key
 Velocity 2 0

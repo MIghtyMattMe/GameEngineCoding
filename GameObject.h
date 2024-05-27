@@ -24,6 +24,7 @@ class GameObject {
         float density = 1.0f;
         float friction = 0.3f;
         int layer = 0;
+        int tag = 0;
 
         std::string UpdateFunction = "";
         bool Grounded = false;
@@ -35,19 +36,12 @@ class GameObject {
         std::string GetFilePath() { return textureFilePath; }
         SDL_Texture* GetTexturePtr() { return targetTexture; }
 
-        //Update will be called once per frame
-        /*
-        void SetUpdateFunction(void (*functionPointer)(void* gObj)) {
-            updateFunction = functionPointer;
-        }
-        void  (*GetUpdateFunction())(void*) {return updateFunction; }
-        void (*updateFunction)(void* gObj) = nullptr;
-        */
-
         //operator overrides for checking this data structure
         bool operator==(GameObject other) {
             if (objBodyDef.position.x != other.objBodyDef.position.x) return false;
             if (objBodyDef.position.y != other.objBodyDef.position.y) return false;
+            if (layer != other.layer) return false;
+            if (tag != other.tag) return false;
             if (width != other.width) return false;
             if (height != other.height) return false;
             if (color.r != other.color.r) return false;

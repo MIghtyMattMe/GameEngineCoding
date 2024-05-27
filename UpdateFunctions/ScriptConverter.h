@@ -71,6 +71,8 @@ namespace ScriptConverter {
             } else if (lineSegments[index].compare("grounded") == 0) {
                 condition = &CoreUpdateFunctions::grounded;
             }
+        
+        //Movement functions
         } else if (lineSegments[0].compare("Push") == 0) {
             if (lineSegments.size() != 3) {
                 SDL_Log("Push command only takes 2 arguments.");
@@ -137,7 +139,45 @@ namespace ScriptConverter {
             newFunc->data.y = -std::stof(lineSegments[2]);
             functionCalls.push_back(*newFunc);
         
+        //rotation functions
+        } else if (lineSegments[0].compare("Rotate") == 0) {
+            if (lineSegments.size() != 2) {
+                SDL_Log("Rotate command only takes 1 arguments.");
+                return false;
+            }
+            functionHolder *newFunc = new functionHolder();
+            newFunc->function = CoreUpdateFunctions::Rotate;
+            newFunc->conditional = &(*condition);
+            newFunc->notted = (notRecord) ? true : false;
+            newFunc->gObj = &(*currObj);
+            newFunc->data.x = std::stof(lineSegments[1]);
+            functionCalls.push_back(*newFunc);
+
+        //Destruction Functions
+        } else if (lineSegments[0].compare("DestroySelf") == 0) {
+            if (lineSegments.size() != 1) {
+                SDL_Log("DestroySelf command takes 0 arguments.");
+                return false;
+            }
+            functionHolder *newFunc = new functionHolder();
+            newFunc->function = CoreUpdateFunctions::DestroySelf;
+            newFunc->conditional = &(*condition);
+            newFunc->notted = (notRecord) ? true : false;
+            newFunc->gObj = &(*currObj);
+            functionCalls.push_back(*newFunc);
+        } else if (lineSegments[0].compare("DestroyTouch") == 0) {
+            if (lineSegments.size() != 1) {
+                SDL_Log("DestroyTouch command takes 0 arguments.");
+                return false;
+            }
+            functionHolder *newFunc = new functionHolder();
+            newFunc->function = CoreUpdateFunctions::DestroyTouch;
+            newFunc->conditional = &(*condition);
+            newFunc->notted = (notRecord) ? true : false;
+            newFunc->gObj = &(*currObj);
+            functionCalls.push_back(*newFunc);
         
+        //Set register functions
 
         } else if (lineSegments[0].compare("KeyPressed") == 0) {
             if (lineSegments.size() != 2) {
@@ -189,6 +229,19 @@ namespace ScriptConverter {
             newFunc->notted = (notRecord) ? true : false;
             newFunc->gObj = &(*currObj);
             newFunc->data.x = 0;
+            newFunc->data.y = 0;
+            functionCalls.push_back(*newFunc);
+        } else if (lineSegments[0].compare("GetTouch") == 0) {
+            if (lineSegments.size() != 2) {
+                SDL_Log("GetTouch command takes 1 arguments.");
+                return false;
+            }
+            functionHolder *newFunc = new functionHolder();
+            newFunc->function = CoreUpdateFunctions::GetTouch;
+            newFunc->conditional = &(*condition);
+            newFunc->notted = (notRecord) ? true : false;
+            newFunc->gObj = &(*currObj);
+            newFunc->data.x = std::stof(lineSegments[1]);
             newFunc->data.y = 0;
             functionCalls.push_back(*newFunc);
         } else {

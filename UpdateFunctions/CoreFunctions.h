@@ -1,14 +1,16 @@
 #pragma once
 #include "../GameObject.h"
+#include "../EngineManager.h"
 #include "box2d/box2d.h"
 #include "KeyData.h"
 #include <iostream>
+#include <ShObjIdl_core.h>
 
 namespace CoreUpdateFunctions {
     extern bool alwaysTrue = true;
     extern bool key = false;
     extern bool touch = false;
-    extern GameObject touchObj;
+    extern GameObject* touchObj = nullptr;
     extern bool grounded = false;
 
     class RayCastCallback : public b2RayCastCallback {
@@ -75,6 +77,26 @@ namespace CoreUpdateFunctions {
     /*
     Touch functions
     */
+    //checks what is touching the gameobject, if there is a tag provided it will only check for that tag,
+    //otherwise, if the provided tag is -1, it will check for any touching object.
+    void GetTouch(bool *conditional, bool notted, void* gObj, b2Vec2 data) {
+        touch = false;
+        if (!(*conditional ^ notted)) return;
+        GameObject* myObj = (GameObject*) gObj;
+        for (b2ContactEdge* ce = myObj->objBody->GetContactList(); ce; ce = ce->next)
+        {
+            //if the contact's obect has the right tag, or if we are looking for any object, grab it and set the register
+            b2Contact* c = ce->contact;
+            GameObject* touchTestObj = EngineManager::FindObjectFromBody(*(c->GetFixtureB()->GetBody()));
+            if (touchTestObj == myObj) {
+                touchTestObj = EngineManager::FindObjectFromBody(*(c->GetFixtureA()->GetBody()));
+            }
+            if (touchTestObj->tag == (int) data.x || data.x < 0) {
+                touch = true;
+                touchObj = touchTestObj;
+            }
+        }
+    }
 
     /*
     Grounded functions
@@ -195,4 +217,48 @@ namespace CoreUpdateFunctions {
         float rot = myObj->objBody->GetAngle();
         myObj->objBody->SetTransform(data, rot);
     }
+
+    /*
+    Rotation based functions
+    */
+
+    //Adds rotational velocity to the game object in a clockwise direction (in radians)
+    void Rotate(bool *conditional, bool notted, void* gObj, b2Vec2 data) {
+        if (!(*conditional ^ notted)) return;
+        GameObject* myObj = (GameObject*) gObj;
+        myObj->objBody->SetAngularVelocity(data.x);
+    }
+
+    /*
+    Destruction functions
+    */
+    //removes the current object from the game
+    void DestroySelf(bool *conditional, bool notted, void* gObj, b2Vec2 data) {
+        if (!(*conditional ^ notted)) return;
+        GameObject* myObj = (GameObject*) gObj;
+        EngineManager::QueueObjectToDestroy(myObj);
+    }
+    //destroies the object in the touchObj resister, then resets the register
+    void DestroyTouch(bool *conditional, bool notted, void* gObj, b2Vec2 data) {
+        if (!(*conditional ^ notted)) return;
+        GameObject* myObj = (GameObject*) gObj;
+        /*
+        int result = MessageBox(
+            NULL,
+            "You Win!",
+            "Victory",
+            MB_OK
+        );
+
+        if (result == IDOK) {
+            //reset the game or something
+        }
+        */
+        if (touchObj != nullptr) EngineManager::QueueObjectToDestroy(touchObj);
+        touchObj = nullptr;
+    }
+
+    /*
+    Game State based functions
+    */
 };
