@@ -1,5 +1,0 @@
-KeyPressed a
-IF key
-Push 1 1
-EXIT
-Push -1 -1

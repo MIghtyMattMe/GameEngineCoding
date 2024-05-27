@@ -1,6 +1,10 @@
 #include "EngineManager.h"
 #include "Brush.h"
+#ifdef ENGINE_CODE
 #include "Inspector.h"
+#else
+#include "UpdateFunctions/UpdateDictionary.h"
+#endif
 #include "SaveLoadBuild.h"
 
 std::vector<SDL_Scancode> KeyData::playModeInput = std::vector<SDL_Scancode>();
@@ -35,6 +39,9 @@ namespace EngineManager {
             layeredObjectsSaved.push_back(std::vector<GameObject*>());
         }
         UpdateDictionary::Generate();
+#ifndef ENGINE_CODE
+        SaveLoadBuild::LoadFile("main.smol", currRenderer, layeredObjectsToLoad);
+#endif
     }
     //remove all our allocated memory
     void CloseEngine() {
@@ -86,6 +93,7 @@ namespace EngineManager {
         }
     }
 
+#ifdef ENGINE_CODE
     //Main Render Loop for our engine interface
     void RenderEngine() {
         MakeTools();
@@ -209,7 +217,7 @@ namespace EngineManager {
         }
         ImGui::End();
     }
-    
+
     //Logic for Selection of GameObjects
     void SelectObject(GameObject* clickedObj) {
         selectedObject = clickedObj;
@@ -257,6 +265,7 @@ namespace EngineManager {
         }
         return nullptr;
     }
+#endif
 
     //These take an existing gameObject (or create a new one) and adds it to the list of objects to be rendered
     void AddToViewPort(GameObject* gameObject) {
@@ -274,7 +283,6 @@ namespace EngineManager {
             }
             newObj = new GameObject(currRenderer, newBody, brush->getType(), targetWidth, targetHeight, brush->getTextureFile());
             if (brush->getType() == Brush::Player) {
-                //newObj->SetUpdateFunction(DefaultUpdates::MovePlayer);
                 newObj->objBodyDef.type = b2_dynamicBody;
                 newObj->objBodyDef.fixedRotation = true;
             }

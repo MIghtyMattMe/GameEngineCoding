@@ -1,7 +1,9 @@
+#ifdef ENGINE_CODE
 #include "imgui/imgui_impl_sdl3.h"
 #include "imgui/imgui_impl_sdlrenderer3.h"
-#include "SDL3/SDL.h"
 #include "imgui/imgui.h"
+#endif
+#include "SDL3/SDL.h"
 #include "box2d/box2d.h"
 
 #include "EngineManager.h"
@@ -26,11 +28,13 @@ bool SetUp() {
     mainRenderer = SDL_CreateRenderer(mainWindow, nullptr, SDL_RENDERER_PRESENTVSYNC | SDL_RENDERER_ACCELERATED);
     if (!mainRenderer) return false;
 
+#ifdef ENGINE_CODE
     //init ImGui and connect it to SDL
     ImGui::CreateContext();
     ImGui::GetStyle().Colors[ImGuiCol_WindowBg] = ImVec4(0, 0, 0, 0);
     ImGui_ImplSDL3_InitForSDLRenderer(mainWindow, mainRenderer);
     ImGui_ImplSDLRenderer3_Init(mainRenderer);
+#endif
 
     //init Engine
     EngineManager::InitEngine(mainRenderer);
@@ -43,9 +47,11 @@ bool SetUp() {
 void TearDown() {
     //shutdown and close all our things
     EngineManager::CloseEngine();
+#ifdef ENGINE_CODE
     ImGui_ImplSDLRenderer3_Shutdown();
     ImGui_ImplSDL3_Shutdown();
     ImGui::DestroyContext();
+#endif
     SDL_DestroyRenderer(mainRenderer);
     SDL_DestroyWindow(mainWindow);
     phyWorld = nullptr;
@@ -57,6 +63,7 @@ bool RenderLoop() {
     KeyData::playModeInput.clear();
     KeyData::lastFrameKeys = KeyData::keysPressed;
 
+#ifdef ENGINE_CODE
     ImGui_ImplSDLRenderer3_NewFrame();
     ImGui_ImplSDL3_NewFrame();
     ImGui::NewFrame();
@@ -64,6 +71,7 @@ bool RenderLoop() {
     //Add our engine overlay and ImGui stuff to the render stack
     EngineManager::RenderEngine();
     ImGui::Render();
+#endif
 
     //set background color of renderer and fill it
     if (SDL_SetRenderDrawColor(mainRenderer, 20, 20, 20, 255)) return false;
@@ -71,7 +79,9 @@ bool RenderLoop() {
 
     //Draw our gameObjects and ImGui Overlay from the renderStack
     EngineManager::DrawViewPort();
+#ifdef ENGINE_CODE
     ImGui_ImplSDLRenderer3_RenderDrawData(ImGui::GetDrawData());
+#endif
     return true;
 }
 
@@ -85,7 +95,10 @@ int main(int argc, char* argv[])
 
     bool done = false;
     bool mouseMiddleDown = false; //This is for knowing when to move the camera
+    bool start = false;
+#ifdef ENGINE_CODE
     ImGuiIO& imguiIO = ImGui::GetIO(); //imguiIO handles the input and output signals for imGui
+#endif
 
     //This is our main rendering loop that gets called "every frame"
     while (!done)
@@ -103,7 +116,9 @@ int main(int argc, char* argv[])
             //handles closing the tab
             if (event.type == SDL_EVENT_QUIT) {
                 done = true;
-            } else if (imguiIO.WantCaptureMouse) {
+            } 
+#ifdef ENGINE_CODE        
+            else if (imguiIO.WantCaptureMouse) {
                 //don't handle the this input to SDL/Renderer, so we do nothing
             }
             
@@ -130,13 +145,15 @@ int main(int argc, char* argv[])
                 newCamPos.y -= EngineManager::PixToMeter(event.motion.yrel);
                 EngineManager::SetCameraPosition(newCamPos);
             }
+#endif
 
             //record input for gameobjects and give it to the Engine
             if (event.type == SDL_EVENT_KEY_DOWN || event.type == SDL_EVENT_KEY_UP) {
                 EngineManager::ReadPlayInput(event);
             }
-
+#ifdef ENGINE_CODE
             ImGui_ImplSDL3_ProcessEvent(&event);
+#endif
         }
         if (done) {
             break;
@@ -144,6 +161,12 @@ int main(int argc, char* argv[])
 
         //update renderer with any new render calls since last "RenderPreset" call
         SDL_RenderPresent(mainRenderer);
+#ifndef ENGINE_CODE
+        if (!start) {
+            EngineManager::PlayEngine();
+            start = true;
+        }
+#endif
     }
 
     TearDown();

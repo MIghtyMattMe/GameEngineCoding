@@ -1,5 +1,7 @@
 #pragma once
+#ifdef ENGINE_CODE
 #include "imgui/imgui.h"
+#endif
 #include "SDL3/SDL.h"
 #include "SDL3/SDL_image.h"
 #include "box2d/box2d.h"
@@ -17,21 +19,23 @@ namespace EngineManager {
     void PlayEngine();
     void StopEngine();
 
+#ifdef ENGINE_CODE
     //creating the engine visual and logic
     void RenderEngine();
     void MakeTools();
     void MakeInspector();
     void MakeControlBoard();
 
+    //functions for selecting items
+    void SelectObject(GameObject* clickedObj);
+    GameObject* FindSelectedObject(b2Vec2 clickedPos);
+#endif
+
     //functions for adding/drawing objects
     void AddToViewPort(GameObject* gameObject);
     void AddToViewPort(b2Vec2 targetPos, float targetWidth, float targetHeight, std::string textureFile="");
     //at some point switch to using Render_Geometry? (https://wiki.libsdl.org/SDL3/SDL_RenderGeometry) for custom polygons
     void DrawViewPort();
-
-    //functions for selecting items
-    void SelectObject(GameObject* clickedObj);
-    GameObject* FindSelectedObject(b2Vec2 clickedPos);
 
     //Functions that run during gameplay, and helper functions for the UpdateCoreFunctions
     void UpdateGameObjects();
