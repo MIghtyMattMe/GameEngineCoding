@@ -3,6 +3,18 @@ IF key
 GetTouch -1
 DestroyTouch
 EXIT
+GetTouch 5
+IF touch
+WinGame
+EXIT
+GetTouch 7
+IF touch
+LoseGame
+EXIT
+KeyPressed r
+IF key
+Reset
+EXIT
 KeyJustPressed d
 IF key
 Velocity 2 0

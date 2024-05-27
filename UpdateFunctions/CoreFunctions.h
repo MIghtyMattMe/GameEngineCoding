@@ -261,4 +261,39 @@ namespace CoreUpdateFunctions {
     /*
     Game State based functions
     */
+    //Resets the game to its initial state. Any changes made during runtime will 
+    //not be applied to the reset game, the engine would have to be reset for that.
+    void Reset(bool *conditional, bool notted, void* gObj, b2Vec2 data) {
+        if (!(*conditional ^ notted)) return;
+        EngineManager::StopEngine();
+        EngineManager::PlayEngine();
+    }
+    //Display a victory message and then reset the game
+    void WinGame(bool *conditional, bool notted, void* gObj, b2Vec2 data) {
+        if (!(*conditional ^ notted)) return;
+        int result = MessageBox(
+            NULL,
+            "You Win!",
+            "Victory",
+            MB_OK
+        );
+        if (result == IDOK) {
+            EngineManager::StopEngine();
+            EngineManager::PlayEngine();
+        }
+    }
+    //Display a lose message and then reset the game
+    void LoseGame(bool *conditional, bool notted, void* gObj, b2Vec2 data) {
+        if (!(*conditional ^ notted)) return;
+        int result = MessageBox(
+            NULL,
+            "You Lose!",
+            "Game Over",
+            MB_OK
+        );
+        if (result == IDOK) {
+            EngineManager::StopEngine();
+            EngineManager::PlayEngine();
+        }
+    }
 };

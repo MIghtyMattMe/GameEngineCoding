@@ -68,6 +68,24 @@ namespace EngineManager {
         playing = true;
     }
 
+    void StopEngine() {
+        for (Uint8 i = 0; i < layeredObjectsToLoad.size(); i++) {
+            //destroy our game world
+            for (GameObject* &gObj : layeredObjectsToLoad[i]) {
+                if (gObj->objBody != nullptr) phyWorld->DestroyBody(gObj->objBody);
+                delete gObj; //This delete's the gameObjects
+            }
+            layeredObjectsToLoad[i].clear(); //This delete's the pointers
+
+            //rebuild the world using saved objects
+            for (GameObject* &gObj : layeredObjectsSaved[i]) {
+                layeredObjectsToLoad[i].push_back(gObj->Clone(currRenderer));
+                delete gObj;
+            }
+            layeredObjectsSaved[i].clear();
+        }
+    }
+
     //Main Render Loop for our engine interface
     void RenderEngine() {
         MakeTools();
@@ -93,9 +111,6 @@ namespace EngineManager {
         ImGui::SameLine();
         if (ImGui::Button("Custom")) {
             brush->setType(Brush::Type::Custom);
-        }
-        if (ImGui::Button("Player")) {
-            brush->setType(Brush::Type::Player);
         }
         ImGui::End();
     }
@@ -178,21 +193,7 @@ namespace EngineManager {
         if (ImGui::Button("Stop")) {
             selectedObject = nullptr;
             if (playing) {
-                for (Uint8 i = 0; i < layeredObjectsToLoad.size(); i++) {
-                    //destroy our game world
-                    for (GameObject* &gObj : layeredObjectsToLoad[i]) {
-                        if (gObj->objBody != nullptr) phyWorld->DestroyBody(gObj->objBody);
-                        delete gObj; //This delete's the gameObjects
-                    }
-                    layeredObjectsToLoad[i].clear(); //This delete's the pointers
-
-                    //rebuild the world using saved objects
-                    for (GameObject* &gObj : layeredObjectsSaved[i]) {
-                        layeredObjectsToLoad[i].push_back(gObj->Clone(currRenderer));
-                        delete gObj;
-                    }
-                    layeredObjectsSaved[i].clear();
-                }
+                StopEngine();
             }
             playing = false;
         }
@@ -362,7 +363,6 @@ namespace EngineManager {
                 CoreUpdateFunctions::touch = false;
                 for (auto func : UpdateDictionary::UpdateFunctions[gObj->UpdateFunction]) {
                     if (gObj == nullptr) break;
-                    SDL_Log("next function");
                     (func.function)(func.conditional, func.notted, gObj, func.data);
                 }
             }

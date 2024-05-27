@@ -176,9 +176,43 @@ namespace ScriptConverter {
             newFunc->notted = (notRecord) ? true : false;
             newFunc->gObj = &(*currObj);
             functionCalls.push_back(*newFunc);
+
+        //Game sate functions
+        } else if (lineSegments[0].compare("Reset") == 0) {
+            if (lineSegments.size() != 1) {
+                SDL_Log("Reset command takes 0 arguments.");
+                return false;
+            }
+            functionHolder *newFunc = new functionHolder();
+            newFunc->function = CoreUpdateFunctions::Reset;
+            newFunc->conditional = &(*condition);
+            newFunc->notted = (notRecord) ? true : false;
+            newFunc->gObj = &(*currObj);
+            functionCalls.push_back(*newFunc);
+        } else if (lineSegments[0].compare("WinGame") == 0) {
+            if (lineSegments.size() != 1) {
+                SDL_Log("WinGame command takes 0 arguments.");
+                return false;
+            }
+            functionHolder *newFunc = new functionHolder();
+            newFunc->function = CoreUpdateFunctions::WinGame;
+            newFunc->conditional = &(*condition);
+            newFunc->notted = (notRecord) ? true : false;
+            newFunc->gObj = &(*currObj);
+            functionCalls.push_back(*newFunc);
+        } else if (lineSegments[0].compare("LoseGame") == 0) {
+            if (lineSegments.size() != 1) {
+                SDL_Log("LoseGame command takes 0 arguments.");
+                return false;
+            }
+            functionHolder *newFunc = new functionHolder();
+            newFunc->function = CoreUpdateFunctions::LoseGame;
+            newFunc->conditional = &(*condition);
+            newFunc->notted = (notRecord) ? true : false;
+            newFunc->gObj = &(*currObj);
+            functionCalls.push_back(*newFunc);
         
         //Set register functions
-
         } else if (lineSegments[0].compare("KeyPressed") == 0) {
             if (lineSegments.size() != 2) {
                 SDL_Log("KeyPressed command only takes 1 arguments.");
@@ -260,7 +294,6 @@ namespace ScriptConverter {
         std::cout << "start reading " << path << std::endl;
         //then, read code from the file
         while (std::getline(srcFile, input)) {
-            std::cout << "line to read " << input << std::endl;
             if (!ConvertLine(input, functionCalls)) return false;
         }
         std::cout << "done reading " << path << std::endl;

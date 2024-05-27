@@ -15,6 +15,7 @@ namespace EngineManager {
     void InitEngine(SDL_Renderer* renderer);
     void CloseEngine();
     void PlayEngine();
+    void StopEngine();
 
     //creating the engine visual and logic
     void RenderEngine();
