@@ -1,0 +1,35 @@
+KeyPressed o
+IF key
+GetTouch -1
+DestroyTouch
+EXIT
+GetTouch 5
+IF touch
+WinGame
+EXIT
+GetTouch 7
+IF touch
+LoseGame
+EXIT
+KeyPressed r
+IF key
+Reset
+EXIT
+KeyJustPressed d
+IF key
+Velocity 2 0
+EXIT
+KeyJustPressed a
+IF key
+Velocity -2 0
+EXIT
+KeyJustPressed w
+IF key
+IsGrounded
+IF grounded
+Velocity 0 5
+EXIT
+KeyJustPressed s
+IF key
+Velocity 0 -5
+EXIT
