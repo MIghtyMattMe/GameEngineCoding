@@ -58,6 +58,7 @@ target_link_libraries(Engine1 ${OPENGL_gl_LIBRARY} ${CMAKE_CURRENT_SOURCE_DIR}/l
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
 
+
 if(ENGINE_CODE)
     #override the current BuildCode directory with my (updated) code
     file(REMOVE_RECURSE ${CMAKE_SOURCE_DIR}/BuildCode)

@@ -77,7 +77,7 @@ namespace CoreUpdateFunctions {
     /*
     Touch functions
     */
-    //checks what is touching the gameobject, if there is a tag provided it will only check for that tag,
+    //checks what is touching the game object, if there is a tag provided it will only check for that tag,
     //otherwise, if the provided tag is -1, it will check for any touching object.
     void GetTouch(bool *conditional, bool notted, void* gObj, b2Vec2 data) {
         touch = false;

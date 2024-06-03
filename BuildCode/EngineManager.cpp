@@ -22,6 +22,7 @@ namespace EngineManager {
     std::vector<std::vector<GameObject*>> layeredObjectsSaved = std::vector<std::vector<GameObject*>>();
     std::vector<GameObject*> objectsToDelete = std::vector<GameObject*>();
     GameObject* selectedObject = nullptr;
+    GameObject* camFocus = nullptr;
 
     //physics variables and world
     b2Vec2 gravity = b2Vec2(0.0f, 10.0f);
@@ -76,6 +77,7 @@ namespace EngineManager {
     }
 
     void StopEngine() {
+        if (camFocus) camFocus = camFocus->Clone(currRenderer);
         for (Uint8 i = 0; i < layeredObjectsToLoad.size(); i++) {
             //destroy our game world
             for (GameObject* &gObj : layeredObjectsToLoad[i]) {
@@ -87,6 +89,7 @@ namespace EngineManager {
             //rebuild the world using saved objects
             for (GameObject* &gObj : layeredObjectsSaved[i]) {
                 layeredObjectsToLoad[i].push_back(gObj->Clone(currRenderer));
+                if (*gObj == *camFocus) camFocus = layeredObjectsToLoad[i].back();
                 delete gObj;
             }
             layeredObjectsSaved[i].clear();
@@ -127,16 +130,24 @@ namespace EngineManager {
         ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0, 0, 0, 1));
         ImGui::Begin("Object Inspector");
         ImGui::PopStyleColor();
-        if (selectedObject != nullptr) {
+        if (selectedObject) {
             //display data if we are playing, but if not, data is editable
             if (playing) {
                 Inspector::BuildPlayModeInspector(selectedObject);
             } else {
+                bool isCamFocusSelected = selectedObject == camFocus;
+                if (ImGui::Checkbox("Camera Focus", &isCamFocusSelected)) {
+                    if (isCamFocusSelected) { 
+                        camFocus = selectedObject; 
+                    } else {
+                        camFocus = nullptr;
+                    }
+                }
                 Inspector::BuildNormalInspector(selectedObject, &layeredObjectsToLoad[0], currRenderer);
                 if (ImGui::Button("Delete")) {
                     for (size_t i = 0; i < layeredObjectsToLoad[selectedObject->layer].size(); i++) {
                         if (layeredObjectsToLoad[selectedObject->layer][i] == selectedObject) {
-                            SDL_Log("Deleted");
+                            if (*selectedObject == *camFocus) camFocus = nullptr;
                             layeredObjectsToLoad[selectedObject->layer].erase(layeredObjectsToLoad[selectedObject->layer].begin() + i);
                             delete selectedObject;
                             selectedObject = nullptr;
@@ -214,6 +225,11 @@ namespace EngineManager {
             buildPathAndFile[0] = buildPath.substr(0, lastSlash);
             buildPathAndFile[1] = buildPath.substr(lastSlash + 1);
             SaveLoadBuild::BuildGame(buildPathAndFile[0], buildPathAndFile[1], currRenderer, layeredObjectsToLoad);
+        }
+
+        //Regenerate the Update functions
+        if (ImGui::Button("Generate Function List")) {
+            UpdateDictionary::Generate();
         }
         ImGui::End();
     }
@@ -406,6 +422,7 @@ namespace EngineManager {
         while (objectsToDelete.size() > 0) {
             for (size_t i = 0; i < layeredObjectsToLoad[objectsToDelete[0]->layer].size(); i++) {
                 if (layeredObjectsToLoad[objectsToDelete[0]->layer][i] == objectsToDelete[0]) {
+                    if (*camFocus == *objectsToDelete[0]) camFocus = nullptr;
                     layeredObjectsToLoad[objectsToDelete[0]->layer].erase(layeredObjectsToLoad[objectsToDelete[0]->layer].begin() + i);
                     phyWorld->DestroyBody(objectsToDelete[0]->objBody);
                     delete objectsToDelete[0];
@@ -417,12 +434,26 @@ namespace EngineManager {
         }
     }
 
-    //Controlling the Camera offset
+    //Controlling the Camera offset and focus
     b2Vec2 GetCameraPosition() {
         return cameraPos;
     }
     void SetCameraPosition(b2Vec2 newPos) {
         cameraPos = newPos;
+    }
+    void SetCamFocus(GameObject* newFocus) {
+        camFocus = newFocus;
+    }
+    GameObject* GetCamFocus() {
+        return camFocus;
+    }
+    void FocusCamera() {
+        if (playing && camFocus) {
+            b2Vec2 newPos = VectorMeterToPixel(camFocus->objBody->GetPosition());
+            newPos.x -= 640;
+            newPos.y -= 360;
+            SetCameraPosition(VectorPixelToMeter(newPos));
+        }
     }
 
     //these are used for physics world creation in main.cpp

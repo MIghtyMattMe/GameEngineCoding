@@ -47,6 +47,9 @@ namespace EngineManager {
     //Controlling the Camera offset
     b2Vec2 GetCameraPosition();
     void SetCameraPosition(b2Vec2 newPos);
+    void SetCamFocus(GameObject* newFocus);
+    GameObject* GetCamFocus();
+    void FocusCamera();
 
     //these are used for physics world creation in main.cpp
     b2Vec2 GetGravityVector();

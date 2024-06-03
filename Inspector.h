@@ -91,9 +91,6 @@ namespace Inspector {
 
     void BuildUpdateSelector(GameObject* selectedObject) {
         std::string currentUpdateFunc = selectedObject->UpdateFunction;
-        if (ImGui::Button("Generate Function List")) {
-            UpdateDictionary::Generate();
-        }
         if (ImGui::BeginCombo("Update Function:", currentUpdateFunc.c_str())) {
             for (auto const& [key, value] : UpdateDictionary::UpdateFunctions) {
                 bool is_selected = (currentUpdateFunc == key);

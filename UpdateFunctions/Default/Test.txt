@@ -1,6 +1,6 @@
 KeyPressed o
 IF key
-GetTouch -1
+GetTouch 3
 DestroyTouch
 EXIT
 GetTouch 5

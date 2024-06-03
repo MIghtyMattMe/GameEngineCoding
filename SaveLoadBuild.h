@@ -20,6 +20,52 @@ namespace SaveLoadBuild {
         return true;
     }
 
+    std::string SaveGObj(GameObject* toSave) {
+        std::string newLine = "";
+        newLine += std::to_string(toSave->objBodyDef.position.x) + ":";
+        newLine += std::to_string(toSave->objBodyDef.position.y) + ":";
+        newLine += std::to_string(toSave->objBodyDef.angle) + ":";
+        newLine += std::to_string(toSave->objBodyDef.fixedRotation) + ":";
+        newLine += std::to_string(toSave->objBodyDef.type) + ":";
+        newLine += std::to_string(toSave->objShape) + ":";
+        newLine += std::to_string(toSave->color.r) + ":";
+        newLine += std::to_string(toSave->color.g) + ":";
+        newLine += std::to_string(toSave->color.b) + ":";
+        newLine += std::to_string(toSave->color.a) + ":";
+        newLine += std::to_string(toSave->width) + ":";
+        newLine += std::to_string(toSave->height) + ":";
+        newLine += std::to_string(toSave->density) + ":";
+        newLine += std::to_string(toSave->friction) + ":";
+        newLine += std::to_string(toSave->layer) + ":";
+        newLine += std::to_string(toSave->tag) + ":";
+        newLine += (toSave->UpdateFunction) + ":";
+        newLine += toSave->GetFilePath();
+        return newLine;
+    }
+    GameObject* LoadGObj(std::string toLoad, SDL_Renderer* &currRenderer) {
+        size_t lineIndex = 0;
+        std::string gObjPiece = "";
+        std::vector<std::string> gObjPieces = std::vector<std::string>();
+        while ((lineIndex = toLoad.find(':')) != std::string::npos) {
+            gObjPiece = toLoad.substr(0, toLoad.find(':'));
+            gObjPieces.push_back(gObjPiece);
+            toLoad.erase(0, lineIndex + 1);
+        }
+        //this assumes that the last item of the saved gameObj is always the texture path
+        GameObject* newObj = nullptr;
+        b2BodyDef newBody;
+        newBody.position.Set(std::stof(gObjPieces[0]), std::stof(gObjPieces[1]));
+        newBody.angle = std::stof(gObjPieces[2]);
+        newBody.fixedRotation = std::strcmp("false", gObjPieces[3].c_str());
+        newBody.type = (b2BodyType) std::stoi(gObjPieces[4]);
+        newObj = new GameObject(currRenderer, newBody, (GameObject::Shape) std::stoi(gObjPieces[5]), std::stof(gObjPieces[10]), std::stof(gObjPieces[11]), toLoad, std::stof(gObjPieces[12]), std::stof(gObjPieces[13]));
+        newObj->UpdateFunction = gObjPieces[16];
+        newObj->layer = std::stoi(gObjPieces[14]);
+        newObj->tag = std::stoi(gObjPieces[15]);
+        newObj->color = SDL_Color(std::stoi(gObjPieces[6]), std::stoi(gObjPieces[7]), std::stoi(gObjPieces[8]), std::stoi(gObjPieces[9]));
+        return newObj;
+    }
+
     //These are all the functions that handle saving and loading files in/out of the engine
     bool LoadFile(std::string path, SDL_Renderer* &currRenderer, std::vector<std::vector<GameObject*>> &layeredObjectsToLoad) {
         //first, load the file
@@ -32,29 +78,34 @@ namespace SaveLoadBuild {
             }
             layer.clear();
         }
+
+        //create a temporary object for the camera focus
+        std::getline(srcFile, input);
+        GameObject* camObj = LoadGObj(input, currRenderer);
+        if (camObj->objShape == GameObject::Polygon) {
+            camObj->verts.clear();
+            std::string camVertInput;
+            std::getline(srcFile, camVertInput);
+            size_t camVertLineIndex = 0;
+            std::string camVertPiece = "";
+            std::vector<std::string> camVertPieces = std::vector<std::string>();
+            while ((camVertLineIndex = camVertInput.find(':')) != std::string::npos) {
+                camVertPiece = camVertInput.substr(0, camVertLineIndex);
+                camVertPieces.push_back(camVertPiece);
+                camVertInput.erase(0, camVertLineIndex + 1);
+            }
+            for (size_t i = 0; i < camVertPieces.size(); i++) {
+                b2Vec2 newVert = b2Vec2();
+                newVert.x = std::stof(camVertPieces.at(i));
+                i++;
+                newVert.y = std::stof(camVertPieces.at(i));
+                camObj->verts.push_back(newVert);
+            }
+        }
+
         //then, read new gameObjects from the file
         while (std::getline(srcFile, input)) {
-            size_t lineIndex = 0;
-            std::string gObjPiece = "";
-            std::vector<std::string> gObjPieces = std::vector<std::string>();
-            while ((lineIndex = input.find(':')) != std::string::npos) {
-                gObjPiece = input.substr(0, input.find(':'));
-                gObjPieces.push_back(gObjPiece);
-                input.erase(0, lineIndex + 1);
-            }
-            //this assumes that the last item of the saved gameObj is always the texture path
-            GameObject* newObj = nullptr;
-            b2BodyDef newBody;
-            newBody.position.Set(std::stof(gObjPieces[0]), std::stof(gObjPieces[1]));
-            newBody.angle = std::stof(gObjPieces[2]);
-            newBody.fixedRotation = std::strcmp("false", gObjPieces[3].c_str());
-            newBody.type = (b2BodyType) std::stoi(gObjPieces[4]);
-            newObj = new GameObject(currRenderer, newBody, (GameObject::Shape) std::stoi(gObjPieces[5]), std::stof(gObjPieces[10]), std::stof(gObjPieces[11]), input, std::stof(gObjPieces[12]), std::stof(gObjPieces[13]));
-            newObj->UpdateFunction = gObjPieces[16];
-            newObj->layer = std::stoi(gObjPieces[14]);
-            newObj->tag = std::stoi(gObjPieces[15]);
-            newObj->color = SDL_Color(std::stoi(gObjPieces[6]), std::stoi(gObjPieces[7]), std::stoi(gObjPieces[8]), std::stoi(gObjPieces[9]));
-
+            GameObject* newObj = LoadGObj(input, currRenderer);
             //set up verts
             if (newObj->objShape == GameObject::Polygon) {
                 newObj->verts.clear();
@@ -79,6 +130,13 @@ namespace SaveLoadBuild {
             EngineManager::AddToViewPort(newObj);
         }
         srcFile.close();
+
+        //finally, find the 'real' camera focus and attach the gameobject to the engine variable
+        for (std::vector<GameObject*> &layer : layeredObjectsToLoad) {
+            for (GameObject* &gObj : layer) {
+                if (*gObj == *camObj) EngineManager::SetCamFocus(gObj);
+            }
+        }
         return true;
     }
 
@@ -86,26 +144,25 @@ namespace SaveLoadBuild {
         //write all the gameObjects to the file, each terminated by new line (\n)
         std::ofstream dstFile(path, std::ofstream::trunc);
         std::string newLine = "";
+
+        //Save Camera Focus
+        GameObject* cameraFocus = EngineManager::GetCamFocus();
+        newLine = SaveGObj(cameraFocus);
+        dstFile << newLine << std::endl;
+        newLine = "";
+        if (cameraFocus->objShape == GameObject::Polygon) {
+            for (b2Vec2 vertex : cameraFocus->verts) {
+                newLine += std::to_string(vertex.x) + ":";
+                newLine += std::to_string(vertex.y) + ":";
+            }
+            dstFile << newLine << std::endl;
+            newLine = "";
+        }
+
+        //Save all the other game objects
         for (std::vector<GameObject*> &layer : layeredObjectsToLoad) {
             for (GameObject* &gObj : layer) {
-                newLine += std::to_string(gObj->objBodyDef.position.x) + ":";
-                newLine += std::to_string(gObj->objBodyDef.position.y) + ":";
-                newLine += std::to_string(gObj->objBodyDef.angle) + ":";
-                newLine += std::to_string(gObj->objBodyDef.fixedRotation) + ":";
-                newLine += std::to_string(gObj->objBodyDef.type) + ":";
-                newLine += std::to_string(gObj->objShape) + ":";
-                newLine += std::to_string(gObj->color.r) + ":";
-                newLine += std::to_string(gObj->color.g) + ":";
-                newLine += std::to_string(gObj->color.b) + ":";
-                newLine += std::to_string(gObj->color.a) + ":";
-                newLine += std::to_string(gObj->width) + ":";
-                newLine += std::to_string(gObj->height) + ":";
-                newLine += std::to_string(gObj->density) + ":";
-                newLine += std::to_string(gObj->friction) + ":";
-                newLine += std::to_string(gObj->layer) + ":";
-                newLine += std::to_string(gObj->tag) + ":";
-                newLine += (gObj->UpdateFunction) + ":";
-                newLine += gObj->GetFilePath();
+                newLine = SaveGObj(gObj);
                 dstFile << newLine << std::endl;
                 newLine = "";
                 if (gObj->objShape == GameObject::Polygon) {
