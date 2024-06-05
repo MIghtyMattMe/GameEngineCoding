@@ -85,7 +85,7 @@ namespace CoreUpdateFunctions {
         GameObject* myObj = (GameObject*) gObj;
         for (b2ContactEdge* ce = myObj->objBody->GetContactList(); ce; ce = ce->next)
         {
-            //if the contact's obect has the right tag, or if we are looking for any object, grab it and set the register
+            //if the contact's object has the right tag, or if we are looking for any object, grab it and set the register
             b2Contact* c = ce->contact;
             GameObject* touchTestObj = EngineManager::FindObjectFromBody(*(c->GetFixtureB()->GetBody()));
             if (touchTestObj == myObj) {
@@ -123,7 +123,6 @@ namespace CoreUpdateFunctions {
                 size_t numberOfVerts = (myObj->verts.empty()) ? 4 : myObj->verts.size();
                 for (size_t i = 0; i < 32; i++) {
                     b2Vec2 vertStart = chainShape->m_vertices[i];
-                    std::cout << chainShape->m_vertices[i].x << std::endl;
                     vertStart = b2Vec2(vertStart.x * cos(rotOffset) - vertStart.y * sin(rotOffset), vertStart.x * sin(rotOffset) + vertStart.y * cos(rotOffset));
                     vertStart += posOffset;
                     b2Vec2 vertEnd = b2Vec2(vertStart.x, vertStart.y + 0.07f);
@@ -151,7 +150,7 @@ namespace CoreUpdateFunctions {
             } else if (fixture->GetType() == b2Shape::e_polygon) {
                 b2PolygonShape* polyShape = (b2PolygonShape*) fixture->GetShape();
                 size_t numberOfVerts = (myObj->verts.empty()) ? 4 : myObj->verts.size();
-                for (size_t i = 0; i < numberOfVerts + 1; i++) {
+                for (size_t i = 0; i < numberOfVerts; i++) {
                     b2Vec2 vertStart = polyShape->m_vertices[i];
                     vertStart = b2Vec2(vertStart.x * cos(rotOffset) - vertStart.y * sin(rotOffset), vertStart.x * sin(rotOffset) + vertStart.y * cos(rotOffset));
                     vertStart += posOffset;
@@ -238,22 +237,10 @@ namespace CoreUpdateFunctions {
         GameObject* myObj = (GameObject*) gObj;
         EngineManager::QueueObjectToDestroy(myObj);
     }
-    //destroies the object in the touchObj resister, then resets the register
+    //destroys the object in the touchObj resister, then resets the register
     void DestroyTouch(bool *conditional, bool notted, void* gObj, b2Vec2 data) {
         if (!(*conditional ^ notted)) return;
         GameObject* myObj = (GameObject*) gObj;
-        /*
-        int result = MessageBox(
-            NULL,
-            "You Win!",
-            "Victory",
-            MB_OK
-        );
-
-        if (result == IDOK) {
-            //reset the game or something
-        }
-        */
         if (touchObj != nullptr) EngineManager::QueueObjectToDestroy(touchObj);
         touchObj = nullptr;
     }

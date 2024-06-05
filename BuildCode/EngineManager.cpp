@@ -147,7 +147,7 @@ namespace EngineManager {
                 if (ImGui::Button("Delete")) {
                     for (size_t i = 0; i < layeredObjectsToLoad[selectedObject->layer].size(); i++) {
                         if (layeredObjectsToLoad[selectedObject->layer][i] == selectedObject) {
-                            if (*selectedObject == *camFocus) camFocus = nullptr;
+                            if (camFocus && *selectedObject == *camFocus) camFocus = nullptr;
                             layeredObjectsToLoad[selectedObject->layer].erase(layeredObjectsToLoad[selectedObject->layer].begin() + i);
                             delete selectedObject;
                             selectedObject = nullptr;
@@ -240,7 +240,8 @@ namespace EngineManager {
     }
     GameObject* FindSelectedObject(b2Vec2 clickedPos) {
         clickedPos += cameraPos;
-        for (std::vector<GameObject*> &layer : layeredObjectsToLoad) {
+        for (size_t l = (layeredObjectsToLoad.size() - 1); l >= 0; l--) {
+            std::vector<GameObject*> &layer = layeredObjectsToLoad[l];
             for (GameObject* &gObj : layer) {
                 if (gObj->objShape == GameObject::Polygon) {
                     //check the verts

@@ -1,17 +1,17 @@
 Velocity 0 0
-KeyJustPressed d
+KeyPressed d
 IF key
 Velocity 2 0
 EXIT
-KeyJustPressed a
+KeyPressed a
 IF key
 Velocity -2 0
 EXIT
-KeyJustPressed w
+KeyPressed w
 IF key
 Velocity 0 2
 EXIT
-KeyJustPressed s
+KeyPressed s
 IF key
 Velocity 0 -2
 EXIT

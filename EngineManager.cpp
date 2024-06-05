@@ -67,6 +67,7 @@ namespace EngineManager {
     }
 
     void PlayEngine() {
+        selectedObject = nullptr;
         for (Uint8 i = 0; i < layeredObjectsToLoad.size(); i++) {
             for (GameObject* &gObj : layeredObjectsToLoad[i]) {
                 layeredObjectsSaved[i].push_back(gObj->Clone(currRenderer));
@@ -78,6 +79,7 @@ namespace EngineManager {
 
     void StopEngine() {
         if (camFocus) camFocus = camFocus->Clone(currRenderer);
+        selectedObject = nullptr;
         for (Uint8 i = 0; i < layeredObjectsToLoad.size(); i++) {
             //destroy our game world
             for (GameObject* &gObj : layeredObjectsToLoad[i]) {
@@ -89,7 +91,7 @@ namespace EngineManager {
             //rebuild the world using saved objects
             for (GameObject* &gObj : layeredObjectsSaved[i]) {
                 layeredObjectsToLoad[i].push_back(gObj->Clone(currRenderer));
-                if (*gObj == *camFocus) camFocus = layeredObjectsToLoad[i].back();
+                if (camFocus && *gObj == *camFocus) camFocus = layeredObjectsToLoad[i].back();
                 delete gObj;
             }
             layeredObjectsSaved[i].clear();
@@ -239,8 +241,9 @@ namespace EngineManager {
         selectedObject = clickedObj;
     }
     GameObject* FindSelectedObject(b2Vec2 clickedPos) {
+        std::cout << "start select" << std::endl;
         clickedPos += cameraPos;
-        for (size_t l = (layeredObjectsToLoad.size() - 1); l >= 0; l--) {
+        for (int l = ((int)layeredObjectsToLoad.size() - 1); l >= 0; l--) {
             std::vector<GameObject*> &layer = layeredObjectsToLoad[l];
             for (GameObject* &gObj : layer) {
                 if (gObj->objShape == GameObject::Polygon) {
@@ -249,7 +252,6 @@ namespace EngineManager {
                     b2Vec2 bodyPosition = (playing) ? gObj->objBody->GetPosition() : gObj->objBodyDef.position;
                     int intersections = 0;
                     for (Uint8 i = 0; i < numVerts; i++) {
-                        //SDL_FPoint u = SDL_FPoint(clickedPos.x - gObj->verts[i].x, clickedPos.y - gObj->verts[i].y);
                         b2Vec2 vert1 = b2Vec2(((gObj->verts[i].x * gObj->width) + bodyPosition.x), ((gObj->verts[i].y * gObj->height) + bodyPosition.y));
                         b2Vec2 vert2 = b2Vec2(((gObj->verts[(i + 1) % numVerts].x * gObj->width) + bodyPosition.x), ((gObj->verts[(i + 1) % numVerts].y * gObj->height) + bodyPosition.y));
                         b2Vec2 leftRay = b2Vec2(clickedPos.x - 100, clickedPos.y);
@@ -280,6 +282,7 @@ namespace EngineManager {
                 }
             }
         }
+        std::cout << "end select" << std::endl;
         return nullptr;
     }
 #endif
