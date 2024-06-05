@@ -1,0 +1,14 @@
+KeyJustPressed d
+IF key
+Push 2 0
+EXIT
+KeyJustPressed a
+IF key
+Push -2 0
+EXIT
+KeyJustPressed w
+IF key
+IsGrounded
+IF grounded
+Push 0 5
+EXIT
