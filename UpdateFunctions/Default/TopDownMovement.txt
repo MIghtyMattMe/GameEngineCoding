@@ -1,0 +1,17 @@
+Velocity 0 0
+KeyJustPressed d
+IF key
+Velocity 2 0
+EXIT
+KeyJustPressed a
+IF key
+Velocity -2 0
+EXIT
+KeyJustPressed w
+IF key
+Velocity 0 2
+EXIT
+KeyJustPressed s
+IF key
+Velocity 0 -2
+EXIT

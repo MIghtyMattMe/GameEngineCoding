@@ -244,7 +244,7 @@ namespace EngineManager {
             for (GameObject* &gObj : layer) {
                 if (gObj->objShape == GameObject::Polygon) {
                     //check the verts
-                    const int numVerts = gObj->verts.size();
+                    const int numVerts = (int) gObj->verts.size();
                     b2Vec2 bodyPosition = (playing) ? gObj->objBody->GetPosition() : gObj->objBodyDef.position;
                     int intersections = 0;
                     for (Uint8 i = 0; i < numVerts; i++) {
@@ -322,7 +322,7 @@ namespace EngineManager {
                 //Apply position to SDL_Vertex -> apply color to SDL_Vertex -> SDL_RenderGeometry()
                 if (gObj->objShape == GameObject::Polygon) {
                     SDL_Vertex geoVerts[8];
-                    const int numVerts = gObj->verts.size();
+                    const int numVerts = (int)gObj->verts.size();
                     b2Vec2 bodyPosition = (playing) ? gObj->objBody->GetPosition() : gObj->objBodyDef.position;
                     float rotation = (playing) ? gObj->objBody->GetAngle() : gObj->objBodyDef.angle;
                     SDL_FPoint centroid = SDL_FPoint(0, 0);
@@ -357,7 +357,7 @@ namespace EngineManager {
                     }
                     //does not alpha, and does not save nor reload on "save/load", and no texture
                     SDL_SetTextureBlendMode(gObj->GetTexturePtr(), SDL_BLENDMODE_BLEND);
-                    SDL_RenderGeometry(currRenderer, NULL, geoPoints.data(), geoPoints.size(), NULL, 0);
+                    SDL_RenderGeometry(currRenderer, NULL, geoPoints.data(), (int) geoPoints.size(), NULL, 0);
                 } else {
                     SDL_FRect texture_rect;
                     texture_rect.x = (playing) ? MeterToPixel(gObj->objBody->GetPosition().x - (gObj->width / 2) - cameraPos.x) : MeterToPixel(gObj->objBodyDef.position.x - (gObj->width / 2) - cameraPos.x);

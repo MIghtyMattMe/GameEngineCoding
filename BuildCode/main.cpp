@@ -162,7 +162,6 @@ int main(int argc, char* argv[])
 
         //update renderer with any new render calls since last "RenderPreset" call
         SDL_RenderPresent(mainRenderer);
-        std::cout << SDL_GetError() << std::endl;
 #ifndef ENGINE_CODE
         if (!start) {
             EngineManager::PlayEngine();

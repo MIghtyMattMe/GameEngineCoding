@@ -86,7 +86,7 @@ void GameObject::CreateAndPlaceBody(b2World* phyWorld) {
         }
         objBody = phyWorld->CreateBody(&objBodyDef);
         b2PolygonShape polygon;
-        polygon.Set(polyPoints.data(), polyPoints.size());
+        polygon.Set(polyPoints.data(), (int32) polyPoints.size());
         b2FixtureDef polygonFixtureDef;
         polygonFixtureDef.shape = &polygon;
         polygonFixtureDef.density = density;

@@ -1,0 +1,4 @@
+GetTouch -1
+IF touch
+LoseGame
+EXIT

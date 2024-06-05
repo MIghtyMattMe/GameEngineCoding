@@ -4,18 +4,11 @@ This is a personal project by Matthew Meacham that uses [Dear IMGUI](https://git
 
 ## How To Build
 
-Building the Smol Game Engine requires [CMake](https://cmake.org/) (version 3.5 or higher) and the Windows OS. Build the engine using CMake. You also need SDL3.dll and SDL3_image.dll in the same directory as the executable to run the engine. Additionally, to build a game from the engine you will need the BuildCode folder to be placed in the executable's directory.
+Building the Smol Game Engine requires [CMake](https://cmake.org/) (version 3.5 or higher) and the Windows OS. Build the engine using CMake. You also need SDL3.dll and SDL3_image.dll in the same directory as the executable to run the engine.
 
 ## How To Use
 
-There are 3 windows within the Smol Game Engine application:
-
-- Engine Tools
-  - This window contains a list of different objects you can "paint" in the game world. Simply left click on a button to select an object, and then left click anywhere in the window to place your object.
-- Object Inspector
-  - This will let you edit and view the properties of your game object. Right click on an object to have it revealed in the inspector. (You can only edit an object's properties in this window while the game is not being played.)
-- Control Board
-  - Contains all the buttons for saving a game (saved as a .smol file), loading a game, playing and stopping a game, and building a game to an executable.
+Please refer to this page to see how to use the engine: [link]()
 
 ## Contents Overview
 
@@ -39,3 +32,5 @@ There are 3 windows within the Smol Game Engine application:
   - Contains the functions for the EngineManager that handles the inspector window. The inspector window is what is used to edit the variables of game objects.
 - main.cpp
   - Contains the core loop of the engine.
+- SaveBuildLoad.h
+  - Contains the functions for Saving the game, loading the game, and building the game.
