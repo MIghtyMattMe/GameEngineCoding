@@ -19,8 +19,29 @@
 </head>
 <body>
 
-<h1>This is a Heading</h1>
-<p1>This is a paragraph.</p1>
+<h1>Writing Update Scripts</h1>
+<p1>All Update Scripts are written in .txt files and make use of a 'register' system.
+    <br>These registers will tell you the state of the game world in relation to that object.
+    <br>Outside of the registers there are 2 types of functions; Register Setters and Interactables.
+    <br><br><br>An example of both functions types and registers would be:
+    <br><br>KeyPressed a 
+    <br>IF key
+    <br>Push 3 3
+    <br>EXIT
+    <br><br>Here, we call the KeyPressed function. This is a Register Setter, so it will set the register 'key' 
+    <br>as either true of false depending on if the parameter 'a' is being pressed. Then, we check IF the
+    <br>register 'key' is true. If so, then the next line (Push 3 3, an Interactable function) gets called (this 
+    <br>pushes our object 3 in the x direction and 3 in the y direction). Lastly, we call EXIT to signify 
+    <br>leaving the IF condition.
+    <br><br><br>It is important to note that there is only a SINGLE space between each element of the script.
+    <br> Additionally, I will note here that the numerical values in Interactable functions can either be 
+    <br>whole numbers, as seen here, or floats, like 3.5.
+    <br><br>For conditionals, there are only two; IF and IF NOT. To leave an if statement, you must call the EXIT command.
+    <br><br>More complex Update Scripts can be found under the DefaultUpdates folder in the project if you want more examples.
+    <br>When compiling scripts in the engine, the Debug Log will pop out and errors it has reading scripts. Read this to help 
+    <br>figure out if you are writing Update Scripts correctly.
+
+</p1>
 
 </body>
 </html>

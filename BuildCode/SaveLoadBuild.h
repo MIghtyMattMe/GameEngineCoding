@@ -81,25 +81,28 @@ namespace SaveLoadBuild {
 
         //create a temporary object for the camera focus
         std::getline(srcFile, input);
-        GameObject* camObj = LoadGObj(input, currRenderer);
-        if (camObj->objShape == GameObject::Polygon) {
-            camObj->verts.clear();
-            std::string camVertInput;
-            std::getline(srcFile, camVertInput);
-            size_t camVertLineIndex = 0;
-            std::string camVertPiece = "";
-            std::vector<std::string> camVertPieces = std::vector<std::string>();
-            while ((camVertLineIndex = camVertInput.find(':')) != std::string::npos) {
-                camVertPiece = camVertInput.substr(0, camVertLineIndex);
-                camVertPieces.push_back(camVertPiece);
-                camVertInput.erase(0, camVertLineIndex + 1);
-            }
-            for (size_t i = 0; i < camVertPieces.size(); i++) {
-                b2Vec2 newVert = b2Vec2();
-                newVert.x = std::stof(camVertPieces.at(i));
-                i++;
-                newVert.y = std::stof(camVertPieces.at(i));
-                camObj->verts.push_back(newVert);
+        GameObject* camObj = nullptr;
+        if (input.compare("null")) {
+            camObj = LoadGObj(input, currRenderer);
+            if (camObj->objShape == GameObject::Polygon) {
+                camObj->verts.clear();
+                std::string camVertInput;
+                std::getline(srcFile, camVertInput);
+                size_t camVertLineIndex = 0;
+                std::string camVertPiece = "";
+                std::vector<std::string> camVertPieces = std::vector<std::string>();
+                while ((camVertLineIndex = camVertInput.find(':')) != std::string::npos) {
+                    camVertPiece = camVertInput.substr(0, camVertLineIndex);
+                    camVertPieces.push_back(camVertPiece);
+                    camVertInput.erase(0, camVertLineIndex + 1);
+                }
+                for (size_t i = 0; i < camVertPieces.size(); i++) {
+                    b2Vec2 newVert = b2Vec2();
+                    newVert.x = std::stof(camVertPieces.at(i));
+                    i++;
+                    newVert.y = std::stof(camVertPieces.at(i));
+                    camObj->verts.push_back(newVert);
+                }
             }
         }
 
@@ -131,10 +134,12 @@ namespace SaveLoadBuild {
         }
         srcFile.close();
 
-        //finally, find the 'real' camera focus and attach the gameobject to the engine variable
-        for (std::vector<GameObject*> &layer : layeredObjectsToLoad) {
-            for (GameObject* &gObj : layer) {
-                if (*gObj == *camObj) EngineManager::SetCamFocus(gObj);
+        //finally, find the 'real' camera focus and attach the game object to the engine variable
+        if (camObj) {
+            for (std::vector<GameObject*> &layer : layeredObjectsToLoad) {
+                for (GameObject* &gObj : layer) {
+                    if (*gObj == *camObj) EngineManager::SetCamFocus(gObj);
+                }
             }
         }
         return true;
@@ -147,16 +152,20 @@ namespace SaveLoadBuild {
 
         //Save Camera Focus
         GameObject* cameraFocus = EngineManager::GetCamFocus();
-        newLine = SaveGObj(cameraFocus);
-        dstFile << newLine << std::endl;
-        newLine = "";
-        if (cameraFocus->objShape == GameObject::Polygon) {
-            for (b2Vec2 vertex : cameraFocus->verts) {
-                newLine += std::to_string(vertex.x) + ":";
-                newLine += std::to_string(vertex.y) + ":";
-            }
+        if (cameraFocus) {
+            newLine = SaveGObj(cameraFocus);
             dstFile << newLine << std::endl;
             newLine = "";
+            if (cameraFocus->objShape == GameObject::Polygon) {
+                for (b2Vec2 vertex : cameraFocus->verts) {
+                    newLine += std::to_string(vertex.x) + ":";
+                    newLine += std::to_string(vertex.y) + ":";
+                }
+                dstFile << newLine << std::endl;
+                newLine = "";
+            }
+        } else {
+            dstFile << "null" << std::endl;
         }
 
         //Save all the other game objects

@@ -19,8 +19,64 @@
 </head>
 <body>
 
-<h1>This is a Heading</h1>
-<p1>This is a paragraph.</p1>
+<h1><br>Update Script API</h1>
+<p1><div style="font-size: 14pt;">Registers:</div></p1>
+<p1>
+    <div style="text-indent: 2em;">key</div>
+    <div style="text-indent: 4em;">Used in determining what keys are down and when.</div>
+    <div style="text-indent: 2em;">grounded</div>
+    <div style="text-indent: 4em;">Will change based on if the object is on the ground when IsGrounded gets called.</div>
+    <div style="text-indent: 2em;">touch</div>
+    <div style="text-indent: 4em;">Unlike the other two registers, touch actually holds a reference to another object.</div>
+</p1>
+<p1>-----------------------</p1>
+<p1><div style="font-size: 14pt;">Functions:</div><div style="font-size: 12pt;">Registers Setters</div></p1>
+<p1>
+    <div style="text-indent: 2em;">KeyPressed</div>
+    <div style="text-indent: 4em;">Takes one parameter in the form of a character, such as 'a', or 'b', and sets the key register</div>
+    <div style="text-indent: 4em;">when the key is pressed. This only works with letters, so numbers and other characters will fail.</div>
+    <div style="text-indent: 2em;">KeyJustPressed</div>
+    <div style="text-indent: 4em;">Takes one parameter in the form of a character, such as 'a', or 'b', and sets the key register</div>
+    <div style="text-indent: 4em;">the frame the key is pressed. This only works with letters, so numbers and other characters will fail.</div>
+    <div style="text-indent: 2em;">KeyJustReleased</div>
+    <div style="text-indent: 4em;">Takes one parameter in the form of a character, such as 'a', or 'b', and sets the key register</div>
+    <div style="text-indent: 4em;">the frame the key is released. This only works with letters, so numbers and other characters will fail.</div>
+    <div style="text-indent: 2em;">GetTouch</div>
+    <div style="text-indent: 4em;">Takes one parameter in the form of an integer. This parameter tells the function what type of tag to look for.</div>
+    <div style="text-indent: 4em;">For example, "GetTouch 1" would set the touch register with any touching object that has a tag of 1.</div>
+    <div style="text-indent: 4em;">A parameter value of -1 will search for all tags.</div>
+    <div style="text-indent: 2em;">IsGrounded</div>
+    <div style="text-indent: 4em;">Takes no parameters, and sets the grounded register based on if the object is touching the floor beneath it.</div>
+    <div style="font-size: 12pt;">Interactables</div>
+    <div style="text-indent: 2em;">Push</div>
+    <div style="text-indent: 4em;">Takes two parameters in the form of numbers. The object gets pushed in the X direction based on the</div>
+    <div style="text-indent: 4em;">first parameter, and the Y direction based on the second parameter. This is in relation to world space</div>
+    <div style="text-indent: 2em;">PushLocal</div>
+    <div style="text-indent: 4em;">Takes two parameters in the form of numbers. The object gets pushed in the X direction based on the</div>
+    <div style="text-indent: 4em;">first parameter, and the Y direction based on the second parameter. This is in relation to local space</div>
+    <div style="text-indent: 2em;">Velocity</div>
+    <div style="text-indent: 4em;">Takes two parameters in the form of numbers. The object gets its velocity set to the X direction based on the</div>
+    <div style="text-indent: 4em;">first parameter, and the Y direction based on the second parameter. This is in relation to world space</div>
+    <div style="text-indent: 2em;">VelocityLocal</div>
+    <div style="text-indent: 4em;">Takes two parameters in the form of numbers. The object gets its velocity set to the X direction based on the</div>
+    <div style="text-indent: 4em;">first parameter, and the Y direction based on the second parameter. This is in relation to local space</div>
+    <div style="text-indent: 2em;">Teleport</div>
+    <div style="text-indent: 4em;">Takes two parameters in the form of numbers. The object gets its position set to X, Y based on the</div>
+    <div style="text-indent: 4em;">first parameter and the second parameter, respectively. This is in relation to world space</div>
+    <div style="text-indent: 2em;">Rotate</div>
+    <div style="text-indent: 4em;">Takes one parameters in the form of a number. The object gets its rotation set to this value.</div>
+    <div style="text-indent: 2em;">DestroySelf</div>
+    <div style="text-indent: 4em;">Takes no parameters. Destroys the object and ends the Update Script.</div>
+    <div style="text-indent: 2em;">DestroyTouch</div>
+    <div style="text-indent: 4em;">Takes no parameters. Destroys the object in the touch register.</div>
+    <div style="text-indent: 2em;">Reset</div>
+    <div style="text-indent: 4em;">Takes no parameters. Resets the game world.</div>
+    <div style="text-indent: 2em;">WinGame</div>
+    <div style="text-indent: 4em;">Takes no parameters. Displays a Victory pop-up and resets the game.</div>
+    <div style="text-indent: 2em;">LoseGame</div>
+    <div style="text-indent: 4em;">Takes no parameters. Displays a Loss pop-up and resets the game.</div>
+    <br><br><br>
+</p1>
 
 </body>
 </html>

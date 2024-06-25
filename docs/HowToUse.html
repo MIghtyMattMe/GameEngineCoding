@@ -18,9 +18,87 @@
     </style>
 </head>
 <body>
+    <br></br>
+    <div id="control"></div>
+    <h1>The Control Board</h1>
+    <p1>The control board is made up of 6 different buttons.</p1>
+    <br></br>
+    <p1>Save:</p1>
+    <p1><div style="text-indent: 2em;">Save the game to a .smol file at the location provided. The Engine will not auto-save</div></p1>
+    <p1><div style="text-indent: 2em;">your work, nor will it ask to save when you close out of it. So be sure to save often!</div></p1>
+    <p1>Load:</p1>
+    <p1><div style="text-indent: 2em;">Loads the specified .smol file into the game. This will overwrite anything currently in the game.</div></p1>
+    <p1><div style="text-indent: 2em;">This may take some time, so watch the debug log and wait patiently until it is done.</div></p1>
+    <p1>Play:</p1>
+    <p1><div style="text-indent: 2em;">Begins a simulation of the game. Anything done while playing will not be saved.</div></p1>
+    <p1><div style="text-indent: 2em;">While playing, nothing can be saved or loaded.</div></p1>
+    <p1>Stop:</p1>
+    <p1><div style="text-indent: 2em;">Stops the game simulation and reverts it back to the state that play started in.</div></p1>
+    <p1>Build:</p1>
+    <p1><div style="text-indent: 2em;">Builds the game into an executable. This can take a while, so be sure to watch the</div></p1>
+    <p1><div style="text-indent: 2em;">debug log for any errors or when it finishes.</div></p1>
+    <p1>Generate Functions:</p1>
+    <p1><div style="text-indent: 2em;">This will go through all the custom scripts and build them into the game. After making</div></p1>
+    <p1><div style="text-indent: 2em;">any changes to the scripts, be sure to press this button and wait for them to compile.</div></p1>
+    <p1><div style="text-indent: 2em;">(Watch the debug log for errors!)</div></p1>
+    <br></br>
 
-<h1>This is a Heading</h1>
-<p1>This is a paragraph.</p1>
+    <div id="tools"></div>
+    <h1>The Engine Tools</h1>
+    <p1>There are 4 different things to place in the game world. Each one is listed here:</p1>
+    <br></br>
+    <p1>Circle:</p1>
+    <p1><div style="text-indent: 2em;">Circles are a default circle that can be placed in the world. The physics of circles should be</div></p1>
+    <p1><div style="text-indent: 2em;">mostly intact, but there may be some bugs due to favoring lower quality for performance</div></p1>
+    <p1>Square:</p1>
+    <p1><div style="text-indent: 2em;">Squares are nothing special, just an easy to use square.</div></p1>
+    <p1>Triangle:</p1>
+    <p1><div style="text-indent: 2em;">Triangles are special polygons that can have their vertices adjusted, however I would</div></p1>
+    <p1><div style="text-indent: 2em;">recommend using Custom objects for that instead.</div></p1>
+    <p1>Custom:</p1>
+    <p1><div style="text-indent: 2em;">Just like triangles. Literally exactly the same, just named differently because these have the</div></p1>
+    <p1><div style="text-indent: 2em;">distinct purpose of being adjustable.</div></p1>
+    <br></br>
 
+    <div id="inspect"></div>
+    <h1>The Inspector</h1>
+    <p1>There are two types of inspectors, one for editing the game while it's stopped, and one for viewing things in the game while it's running.</p1>
+    <br></br>
+    <p1><div style="font-size: 14pt;">Editing Inspector</div></p1>
+    <p1><br>Camera Focus:</p1>
+    <p1><div style="text-indent: 2em;">If enabled, the camera will center to this object when playing. ONly one object can have this enabled.</div></p1>
+    <p1>X and Y Pos:</p1>
+    <p1><div style="text-indent: 2em;">The position of the object in world space.</div></p1>
+    <p1><div style="text-indent: 2em;">For larger projects, it may be more helpful to Ctrl+LeftClick the number and enter in a custom value.</div></p1>
+    <p1>Angle:</p1>
+    <p1><div style="text-indent: 2em;">The angle that the object is rotated at.</div></p1>
+    <p1>Fixed Rotation:</p1>
+    <p1><div style="text-indent: 2em;">When enabled, the object cannot be rotated due to pushing up against other objects.</div></p1>
+    <p1>Width and Height:</p1>
+    <p1><div style="text-indent: 2em;">The height and width of the object. This will scale the image too.</div></p1>
+    <p1>Layer:</p1>
+    <p1><div style="text-indent: 2em;">Objects can have physics interactions only with other objects on the same layer. Lower value layers are rendered in the back.</div></p1>
+    <p1>Tag:</p1>
+    <p1><div style="text-indent: 2em;">Tags are used for Custom Scripting to determine collisions.</div></p1>
+    <p1>Density:</p1>
+    <p1><div style="text-indent: 2em;">How dense an object's body is.</div></p1>
+    <p1>Friction:</p1>
+    <p1><div style="text-indent: 2em;">The friction value when another object moves along this one.</div></p1>
+    <p1>Update Function:</p1>
+    <p1><div style="text-indent: 2em;">The Update script that gets fun during play for this object.</div></p1>
+    <p1>Physics Type:</p1>
+    <p1><div style="text-indent: 2em;">The type of physics interactions this object has. Static has no interaction. Dynamic has all interactions. Kinematic objects only interact with themselves.</div></p1>
+    <p1><div style="text-indent: 2em;">Dynamic has all interactions. Kinematic objects only interact with themselves.</div></p1>
+    <p1>Physics Body:</p1>
+    <p1><div style="text-indent: 2em;">The shape of the collision body for the object. It's recommended that you do not change this.</div></p1>
+    <p1>Color:</p1>
+    <p1><div style="text-indent: 2em;">The colors of the object in RGBA.</div></p1>
+    <p1>Delete:</p1>
+    <p1><div style="text-indent: 2em;">Deletes the object from the game.</div></p1>
+    <p1><div style="text-indent: 2em; font-size: 14pt;"><br>Viewing Inspector</div></p1>
+    <p1><br><div style="text-indent: 2em;">In game, the inspector displays a handful of the values shown above.</div></p1>
+    <br></br>
+    <br></br>
+    <br></br>
 </body>
 </html>
