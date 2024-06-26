@@ -15,7 +15,7 @@ namespace CoreUpdateFunctions {
 
     class RayCastCallback : public b2RayCastCallback {
     public:
-        RayCastCallback(b2Fixture* src) { 
+        RayCastCallback(b2Fixture* src) {
             srcFixture = src;
             outHit = false; 
         }
@@ -24,7 +24,8 @@ namespace CoreUpdateFunctions {
             outFixture = fix;
             outNorm = norm;
             outFraction = frac;
-            if (fix->GetBody() != srcFixture->GetBody()) {
+            //if it's not the same body, but on the same layer
+            if (fix->GetBody() != srcFixture->GetBody() && fix->GetFilterData().maskBits == srcFixture->GetFilterData().maskBits) {
                 outHit = true;
                 return 0;
             }
@@ -91,7 +92,7 @@ namespace CoreUpdateFunctions {
             if (touchTestObj == myObj) {
                 touchTestObj = EngineManager::FindObjectFromBody(*(c->GetFixtureA()->GetBody()));
             }
-            if (touchTestObj->tag == (int) data.x || data.x < 0) {
+            if (c->IsTouching() && (touchTestObj->tag == (int) data.x || data.x < 0)) {
                 touch = true;
                 touchObj = touchTestObj;
             }
