@@ -2,19 +2,18 @@
 #include <iostream>
 
 GameObject::GameObject() {}
-GameObject::GameObject(SDL_Renderer* renderer, b2BodyDef targetBody, int shape, float targetWidth, float targetHeight, std::string textureFile, float targetDensity, float targetFriction) {
+GameObject::GameObject(SDL_Renderer* renderer, b2BodyDef targetBody, int shape, float targetWidth, float targetHeight, SDL_Texture *texturePtr, float targetDensity, float targetFriction) {
     objBodyDef = targetBody;
     width = targetWidth;
     height = targetHeight;
     density = targetDensity;
     friction = targetFriction;
     objShape = (shape <= 3) ? (Shape) shape : Polygon;
-    SetTextureFromFile(renderer, textureFile);
+    targetTexture = texturePtr;
     UpdateFunction = "None";
     tag = 0;
 }
 GameObject::~GameObject() {
-    if (targetTexture != NULL || targetTexture != nullptr) SDL_DestroyTexture(targetTexture);
     targetTexture = NULL;
     objBody = NULL;
 }
@@ -24,8 +23,7 @@ GameObject* GameObject::Clone(SDL_Renderer* targetRenderer) {
     newBody.type = objBodyDef.type;
     newBody.angle = objBodyDef.angle;
     newBody.fixedRotation = objBodyDef.fixedRotation;
-    GameObject* newObj = new GameObject(targetRenderer, newBody, objShape, width, height, GetFilePath());
-    newObj->SetTextureFromFile(targetRenderer, newObj->GetFilePath());
+    GameObject* newObj = new GameObject(targetRenderer, newBody, objShape, width, height, targetTexture);
     newObj->UpdateFunction = UpdateFunction;
     newObj->layer = layer;
     newObj->tag = tag;
@@ -97,9 +95,4 @@ void GameObject::CreateAndPlaceBody(b2World* phyWorld) {
     } else if (objShape == None) {
         objBody = phyWorld->CreateBody(&objBodyDef);
     }
-}
-
-void GameObject::SetTextureFromFile(SDL_Renderer* renderer, std::string textureFile) {
-    textureFilePath = textureFile;
-    targetTexture = IMG_LoadTexture(renderer, &textureFile[0]);
 }

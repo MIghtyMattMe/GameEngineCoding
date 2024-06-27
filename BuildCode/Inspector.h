@@ -135,7 +135,6 @@ namespace Inspector {
                 for (Uint8 k = 0; k < currObjects[i].size(); k++) {
                     if (*currObjects[i][k] == *selectedObject) {
                         currObjects[selectedObject->layer].push_back(selectedObject);
-                        selectedObject->SetTextureFromFile(renderer, selectedObject->GetFilePath());
                         currObjects[i].erase(currObjects[i].begin() + k);
                         found = true;
                         break;

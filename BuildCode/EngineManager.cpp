@@ -33,7 +33,7 @@ namespace EngineManager {
 
     //Initialized the engine by creating out brush (and other stuff eventually)
     void InitEngine(SDL_Renderer* renderer) {
-        brush = new Brush();
+        brush = new Brush(renderer);
         currRenderer = renderer;
         for (int i = 0; i < 8; i++) {
             layeredObjectsToLoad.push_back(std::vector<GameObject*>());
@@ -69,6 +69,7 @@ namespace EngineManager {
     void PlayEngine() {
         selectedObject = nullptr;
         for (Uint8 i = 0; i < layeredObjectsToLoad.size(); i++) {
+            //copy gameObjects to saved list
             for (GameObject* &gObj : layeredObjectsToLoad[i]) {
                 layeredObjectsSaved[i].push_back(gObj->Clone(currRenderer));
                 gObj->CreateAndPlaceBody(phyWorld);
@@ -88,10 +89,14 @@ namespace EngineManager {
             }
             layeredObjectsToLoad[i].clear(); //This delete's the pointers
 
-            //rebuild the world using saved objects
+            //rebuild the world using saved objects, then clear the saved list
             for (GameObject* &gObj : layeredObjectsSaved[i]) {
-                layeredObjectsToLoad[i].push_back(gObj->Clone(currRenderer));
-                if (camFocus && *gObj == *camFocus) camFocus = layeredObjectsToLoad[i].back();
+                if (camFocus && *gObj == *camFocus) {
+                    layeredObjectsToLoad[i].push_back(camFocus);
+                } else {
+                    GameObject *newObj = gObj->Clone(currRenderer);
+                    layeredObjectsToLoad[i].push_back(newObj);
+                }
                 delete gObj;
             }
             layeredObjectsSaved[i].clear();
@@ -187,7 +192,7 @@ namespace EngineManager {
             selectedObject = nullptr;
             std::string loadPath = SaveLoadBuild::CreateLoadDialogBox();
             if (!loadPath.empty()) {
-                if (!SaveLoadBuild::LoadFile(loadPath, currRenderer, layeredObjectsToLoad)) {
+                if (!SaveLoadBuild::LoadFile(loadPath, currRenderer, layeredObjectsToLoad, brush)) {
                     SDL_Log("Failed to Load");
                 }
             } else {
@@ -241,7 +246,6 @@ namespace EngineManager {
         selectedObject = clickedObj;
     }
     GameObject* FindSelectedObject(b2Vec2 clickedPos) {
-        std::cout << "start select" << std::endl;
         clickedPos += cameraPos;
         for (int l = ((int)layeredObjectsToLoad.size() - 1); l >= 0; l--) {
             std::vector<GameObject*> &layer = layeredObjectsToLoad[l];
@@ -282,7 +286,6 @@ namespace EngineManager {
                 }
             }
         }
-        std::cout << "end select" << std::endl;
         return nullptr;
     }
 #endif
@@ -301,13 +304,13 @@ namespace EngineManager {
                 SDL_Log("No brush texture was chosen!");
                 return;
             }
-            newObj = new GameObject(currRenderer, newBody, brush->getType(), targetWidth, targetHeight, brush->getTextureFile());
+            newObj = new GameObject(currRenderer, newBody, brush->getType(), targetWidth, targetHeight, brush->texturesSaved[brush->getType()]);
             if (brush->getType() == Brush::Player) {
                 newObj->objBodyDef.type = b2_dynamicBody;
                 newObj->objBodyDef.fixedRotation = true;
             }
         } else {
-            newObj = new GameObject(currRenderer, newBody, 0, targetWidth, targetHeight, textureFile);
+            newObj = new GameObject(currRenderer, newBody, 0, targetWidth, targetHeight, brush->texturesSaved[2]);
         }
         if (playing) {
             newObj->CreateAndPlaceBody(phyWorld);
@@ -372,7 +375,9 @@ namespace EngineManager {
                     rotation *= (180 /b2_pi);
                     SDL_SetTextureColorMod(gObj->GetTexturePtr(), gObj->color.r, gObj->color.g, gObj->color.b);
                     SDL_SetTextureAlphaMod(gObj->GetTexturePtr(), gObj->color.a);
-                    SDL_RenderTextureRotated(currRenderer, gObj->GetTexturePtr(), NULL, &texture_rect, rotation, NULL, SDL_FlipMode::SDL_FLIP_NONE);
+                    if (SDL_RenderTextureRotated(currRenderer, gObj->GetTexturePtr(), NULL, &texture_rect, rotation, NULL, SDL_FlipMode::SDL_FLIP_NONE)) {
+                        std::cout << SDL_GetError() << " with " << gObj->GetTexturePtr() << std::endl;
+                    }
                 }
             }
             j++;

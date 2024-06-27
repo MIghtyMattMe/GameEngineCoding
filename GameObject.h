@@ -8,7 +8,7 @@
 class GameObject {
     public:
         GameObject();
-        GameObject(SDL_Renderer* renderer, b2BodyDef targetBody, int shape=3, float targetWidth=1.0f, float targetHeight=1.0f, std::string textureFile="",  float targetDensity=1.0f, float targetFriction=0.3f);
+        GameObject(SDL_Renderer* renderer, b2BodyDef targetBody, int shape=3, float targetWidth=1.0f, float targetHeight=1.0f, SDL_Texture *texturePtr=nullptr,  float targetDensity=1.0f, float targetFriction=0.3f);
         ~GameObject();
 
         //variables of a gameObject
@@ -28,11 +28,7 @@ class GameObject {
         std::string UpdateFunction = "";
         bool Grounded = false;
 
-        //sets the texture of a gameObject from a file location
-        void SetTextureFromFile(SDL_Renderer* renderer, std::string textureFile);
-
-        //Getter for the file path string and target texture
-        std::string GetFilePath() { return textureFilePath; }
+        //Getter for the target texture
         SDL_Texture* GetTexturePtr() { return targetTexture; }
 
         //operator overrides for checking this data structure

@@ -54,7 +54,7 @@ else()
             )
 endif()
 
-install(FILES lib/box2d.pdb DESTINATION ${CMAKE_INSTALL_BINDIR}/$<CONFIG> OPTIONAL)
+#install(FILES lib/box2d.pdb DESTINATION ${CMAKE_INSTALL_BINDIR}/$<CONFIG> OPTIONAL)
 target_link_libraries(Engine1 ${OPENGL_gl_LIBRARY} ${CMAKE_CURRENT_SOURCE_DIR}/lib/SDL3.lib ${CMAKE_CURRENT_SOURCE_DIR}/lib/SDL3_test.lib ${CMAKE_CURRENT_SOURCE_DIR}/lib/SDL3_image.lib ${CMAKE_CURRENT_SOURCE_DIR}/lib/box2d.lib)
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})

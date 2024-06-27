@@ -1,5 +1,6 @@
 #pragma once
 #include "EngineManager.h"
+#include "Brush.h"
 #include <iostream>
 #include <fstream>
 #include <filesystem>
@@ -38,11 +39,10 @@ namespace SaveLoadBuild {
         newLine += std::to_string(toSave->friction) + ":";
         newLine += std::to_string(toSave->layer) + ":";
         newLine += std::to_string(toSave->tag) + ":";
-        newLine += (toSave->UpdateFunction) + ":";
-        newLine += toSave->GetFilePath();
+        newLine += (toSave->UpdateFunction);
         return newLine;
     }
-    GameObject* LoadGObj(std::string toLoad, SDL_Renderer* &currRenderer) {
+    GameObject* LoadGObj(std::string toLoad, SDL_Renderer* &currRenderer,Brush* BrushToUse) {
         size_t lineIndex = 0;
         std::string gObjPiece = "";
         std::vector<std::string> gObjPieces = std::vector<std::string>();
@@ -58,8 +58,8 @@ namespace SaveLoadBuild {
         newBody.angle = std::stof(gObjPieces[2]);
         newBody.fixedRotation = std::strcmp("false", gObjPieces[3].c_str());
         newBody.type = (b2BodyType) std::stoi(gObjPieces[4]);
-        newObj = new GameObject(currRenderer, newBody, (GameObject::Shape) std::stoi(gObjPieces[5]), std::stof(gObjPieces[10]), std::stof(gObjPieces[11]), toLoad, std::stof(gObjPieces[12]), std::stof(gObjPieces[13]));
-        newObj->UpdateFunction = gObjPieces[16];
+        newObj = new GameObject(currRenderer, newBody, (GameObject::Shape) std::stoi(gObjPieces[5]), std::stof(gObjPieces[10]), std::stof(gObjPieces[11]), BrushToUse->texturesSaved[std::stoi(gObjPieces[5])], std::stof(gObjPieces[12]), std::stof(gObjPieces[13]));
+        newObj->UpdateFunction = toLoad;
         newObj->layer = std::stoi(gObjPieces[14]);
         newObj->tag = std::stoi(gObjPieces[15]);
         newObj->color = SDL_Color(std::stoi(gObjPieces[6]), std::stoi(gObjPieces[7]), std::stoi(gObjPieces[8]), std::stoi(gObjPieces[9]));
@@ -67,7 +67,7 @@ namespace SaveLoadBuild {
     }
 
     //These are all the functions that handle saving and loading files in/out of the engine
-    bool LoadFile(std::string path, SDL_Renderer* &currRenderer, std::vector<std::vector<GameObject*>> &layeredObjectsToLoad) {
+    bool LoadFile(std::string path, SDL_Renderer* &currRenderer, std::vector<std::vector<GameObject*>> &layeredObjectsToLoad, Brush* BrushToUse) {
         //first, load the file
         std::ifstream srcFile(path);
         std::string input;
@@ -83,7 +83,7 @@ namespace SaveLoadBuild {
         std::getline(srcFile, input);
         GameObject* camObj = nullptr;
         if (input.compare("null")) {
-            camObj = LoadGObj(input, currRenderer);
+            camObj = LoadGObj(input, currRenderer, BrushToUse);
             if (camObj->objShape == GameObject::Polygon) {
                 camObj->verts.clear();
                 std::string camVertInput;
@@ -108,7 +108,7 @@ namespace SaveLoadBuild {
 
         //then, read new gameObjects from the file
         while (std::getline(srcFile, input)) {
-            GameObject* newObj = LoadGObj(input, currRenderer);
+            GameObject* newObj = LoadGObj(input, currRenderer, BrushToUse);
             //set up verts
             if (newObj->objShape == GameObject::Polygon) {
                 newObj->verts.clear();
