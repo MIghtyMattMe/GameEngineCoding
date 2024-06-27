@@ -8,7 +8,7 @@ Building the Smol Game Engine requires [CMake](https://cmake.org/) (version 3.5 
 
 ## How To Use
 
-Please refer to this page to see how to use the engine: [link]()
+Please refer to this page to see how to use the engine: [https://mightymattme.github.io/GameEngineCoding/](https://mightymattme.github.io/GameEngineCoding/)
 
 ## Contents Overview
 
