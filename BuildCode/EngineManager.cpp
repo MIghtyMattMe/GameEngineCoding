@@ -41,7 +41,7 @@ namespace EngineManager {
         }
         UpdateDictionary::Generate();
 #ifndef ENGINE_CODE
-        SaveLoadBuild::LoadFile("main.smol", currRenderer, layeredObjectsToLoad);
+        SaveLoadBuild::LoadFile("main.smol", currRenderer, layeredObjectsToLoad, brush);
 #endif
     }
     //remove all our allocated memory

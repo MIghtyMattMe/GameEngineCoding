@@ -4,7 +4,7 @@ project(Engine1 VERSION 0.1.0 LANGUAGES C CXX)
 # for filesystem functionality from C++20
 set(CMAKE_CXX_STANDARD 20)
 
-set(ENGINE_CODE ON)
+set(ENGINE_CODE OFF)
 if(ENGINE_CODE)
     add_compile_definitions(ENGINE_CODE)
 endif()
